@@ -25,6 +25,7 @@ interface NvimConfig {
   settingsConfig?: SettingsConfig;
   leaderKey: string;
   keymaps: { [key: string]: string };
+  downloadDir?: string;
 }
 
 const STEPS = [
@@ -89,7 +90,8 @@ const Index = () => {
     settings: [],
     settingsConfig: getDefaultSettingsConfig(),
     leaderKey: ' ',
-    keymaps: {}
+    keymaps: {},
+    downloadDir: ''
   });
   const [generatedConfig, setGeneratedConfig] = useState<string>('');
   const [copied, setCopied] = useState(false);
@@ -107,6 +109,7 @@ const Index = () => {
     if (newConfig.plugins.length > 0) params.set('plugins', newConfig.plugins.join(','));
     if (newConfig.settings.length > 0) params.set('settings', newConfig.settings.join(','));
     if (newConfig.leaderKey !== ' ') params.set('leaderKey', newConfig.leaderKey);
+    if (newConfig.downloadDir) params.set('downloadDir', newConfig.downloadDir);
     if (Object.keys(newConfig.keymaps).length > 0) {
       params.set('keymaps', JSON.stringify(newConfig.keymaps));
     }
@@ -123,6 +126,7 @@ const Index = () => {
     const plugins = params.get('plugins')?.split(',').filter(Boolean) || [];
     const settings = params.get('settings')?.split(',').filter(Boolean) || [];
     const leaderKey = params.get('leaderKey') || ' ';
+    const downloadDir = params.get('downloadDir') || '';
     
     let keymaps = {};
     try {
@@ -141,7 +145,8 @@ const Index = () => {
       settings, 
       settingsConfig: getDefaultSettingsConfig(), 
       leaderKey, 
-      keymaps 
+      keymaps,
+      downloadDir
     };
     setCurrentStep(step);
     setConfig(newConfig);
@@ -415,6 +420,37 @@ const Index = () => {
                 Click download to save it to your computer.
               </p>
             </div>
+            
+            {/* Download Directory Setting */}
+            <Card className="bg-gradient-card border-border">
+              <CardHeader>
+                <CardTitle className="text-nvim-green flex items-center gap-2">
+                  <Download className="w-5 h-5" />
+                  Download Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Neovim Config Directory (optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={config.downloadDir || ''}
+                    onChange={(e) => {
+                      const newConfig = { ...config, downloadDir: e.target.value };
+                      setConfig(newConfig);
+                      updateURL(currentStep, newConfig);
+                    }}
+                    placeholder="e.g., ~/.config/nvim/ or %LOCALAPPDATA%\nvim\"
+                    className="w-full px-3 py-2 bg-background border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Set this to your nvim config directory to enable the <code className="bg-background/50 px-1 rounded">open_config_web</code> keymap (<code className="bg-background/50 px-1 rounded">&lt;C-,&gt;</code> by default) in your generated config.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
             
             <Card className="bg-gradient-card border-border">
               <CardContent className="p-6">
@@ -775,7 +811,8 @@ const Index = () => {
                   settings: [], 
                   settingsConfig: getDefaultSettingsConfig(), 
                   leaderKey: ' ', 
-                  keymaps: {} 
+                  keymaps: {},
+                  downloadDir: ''
                 };
                 setConfig(resetConfig);
                 setGeneratedConfig('');

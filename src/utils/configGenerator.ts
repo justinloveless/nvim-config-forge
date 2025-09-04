@@ -9,10 +9,11 @@ interface NvimConfig {
   settingsConfig?: SettingsConfig; // New comprehensive settings
   leaderKey: string;
   keymaps: { [key: string]: string };
+  downloadDir?: string;
 }
 
 export const generateInitLua = (config: NvimConfig): string => {
-  const { languages, theme, plugins, settings, settingsConfig, leaderKey, keymaps } = config;
+  const { languages, theme, plugins, settings, settingsConfig, leaderKey, keymaps, downloadDir } = config;
 
   // Add leader key mapping first (before any plugins)
   const leaderKeyDisplay = leaderKey === ' ' ? 'Space' : leaderKey;
@@ -557,6 +558,41 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
   if (Object.keys(keymaps).length > 0) {
     initContent += `\n-- Custom keymaps\n`;
     
+    // Add web app function if the keymap exists
+    if (keymaps['open_config_web']) {
+      const currentUrl = window.location.origin + window.location.pathname;
+      const params = new URLSearchParams();
+      params.set('step', '5'); // Go to keymaps step for editing
+      if (languages.length > 0) params.set('languages', languages.join(','));
+      if (theme) params.set('theme', theme);
+      if (plugins.length > 0) params.set('plugins', plugins.join(','));
+      if (settings.length > 0) params.set('settings', settings.join(','));
+      if (leaderKey !== ' ') params.set('leaderKey', leaderKey);
+      if (downloadDir) params.set('downloadDir', downloadDir);
+      if (Object.keys(keymaps).length > 0) {
+        params.set('keymaps', JSON.stringify(keymaps));
+      }
+      
+      const webAppUrl = `${currentUrl}?${params.toString()}`;
+      
+      initContent += `-- Function to open config web app with current settings
+local function open_config_web_app()
+  local url = "${webAppUrl}"
+  local cmd
+  if vim.fn.has('macunix') == 1 then
+    cmd = 'open "' .. url .. '"'
+  elseif vim.fn.has('win32') == 1 then
+    cmd = 'start "" "' .. url .. '"'
+  else
+    cmd = 'xdg-open "' .. url .. '"'
+  end
+  vim.fn.system(cmd)
+  print("Opening config web app...")
+end
+
+`;
+    }
+    
     const keymapCommands = {
       'command_mode': ':',
       'split_horizontal': '<cmd>split<CR>',
@@ -596,7 +632,8 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
       'gitsigns_stage_hunk': 'function() require("gitsigns").stage_hunk() end',
       'gitsigns_reset_hunk': 'function() require("gitsigns").reset_hunk() end',
       'gitsigns_preview_hunk': 'function() require("gitsigns").preview_hunk() end',
-      'which_key_show': '<cmd>WhichKey<CR>'
+      'which_key_show': '<cmd>WhichKey<CR>',
+      'open_config_web': 'function() open_config_web_app() end'
     };
     
     const keymapDescriptions = {
@@ -639,7 +676,8 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
       'gitsigns_stage_hunk': 'Stage git hunk',
       'gitsigns_reset_hunk': 'Reset git hunk',
       'gitsigns_preview_hunk': 'Preview git hunk',
-      'which_key_show': 'Show keybindings'
+      'which_key_show': 'Show keybindings',
+      'open_config_web': 'Open config web app'
     };
     
     Object.entries(keymaps).forEach(([action, keymap]) => {

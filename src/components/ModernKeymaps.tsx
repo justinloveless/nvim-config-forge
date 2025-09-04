@@ -59,6 +59,7 @@ const KEYMAP_SECTIONS: KeymapSection[] = [
       { id: 'quit', name: 'Quit', description: 'Quit Neovim' },
       { id: 'select_all', name: 'Select All', description: 'Select all text' },
       { id: 'search_replace', name: 'Search & Replace', description: 'Search and replace' },
+      { id: 'open_config_web', name: 'Open Config Web App', description: 'Open this configuration app in browser with current settings' },
     ]
   },
   {
@@ -190,6 +191,7 @@ const DEFAULT_KEYMAPS: { [key: string]: string } = {
   'quit': '<leader>q',
   'select_all': '<leader>a',
   'search_replace': '<leader>sr',
+  'open_config_web': '<C-,>',
   
   // Navigation
   'split_horizontal': '<leader>s',
