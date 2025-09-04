@@ -634,7 +634,10 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-card pb-24">
-      <div className="container mx-auto px-4 py-6 md:py-12 max-w-6xl mb-20">
+      <div className={cn(
+        "container mx-auto px-4 max-w-6xl mb-20",
+        currentStep === 0 ? "py-6 md:py-12" : "pt-2 pb-6 md:pt-4 md:pb-12"
+      )}>
         {/* Header - Only show on Quick Start step with animation */}
         <div 
           className={cn(
