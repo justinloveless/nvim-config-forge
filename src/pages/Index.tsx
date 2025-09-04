@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import { ProgressIndicator } from '@/components/ProgressIndicator';
 import { WizardStep } from '@/components/WizardStep';
 import ModernKeymaps from '@/components/ModernKeymaps';
@@ -14,7 +15,9 @@ import { PresetStacks } from '@/components/PresetStacks';
 import { InstallerScripts } from '@/components/InstallerScripts';
 import { HealthCheckAnalyzer } from '@/components/HealthCheckAnalyzer';
 import { ConfigImporter } from '@/components/ConfigImporter';
-import { Code, Palette, Plug, Settings, Download, FileText, Copy, Check, Zap, Wrench, FileUp } from 'lucide-react';
+import { connectDirectory, writeToConnectedDirectory, hasDirectoryConnection } from '@/utils/dirHandleStore';
+import { detectNvimListener, saveToNvim } from '@/utils/nvimListener';
+import { Code, Palette, Plug, Settings, Download, FileText, Copy, Check, Zap, Wrench, FileUp, Folder, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NvimConfig {
@@ -26,6 +29,9 @@ interface NvimConfig {
   leaderKey: string;
   keymaps: { [key: string]: string };
   downloadDir?: string;
+  nvimListenerEnabled?: boolean;
+  nvimListenerPort?: number;
+  nvimListenerToken?: string;
 }
 
 const STEPS = [
@@ -91,13 +97,18 @@ const Index = () => {
     settingsConfig: getDefaultSettingsConfig(),
     leaderKey: ' ',
     keymaps: {},
-    downloadDir: ''
+    downloadDir: '',
+    nvimListenerEnabled: false,
+    nvimListenerPort: 45831,
+    nvimListenerToken: ''
   });
   const [generatedConfig, setGeneratedConfig] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [copiedCommands, setCopiedCommands] = useState<{ [key: string]: boolean }>({});
   const [showAdvancedFeatures, setShowAdvancedFeatures] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [hasDirectoryHandle, setHasDirectoryHandle] = useState(false);
+  const [nvimListenerConnected, setNvimListenerConnected] = useState(false);
   const { toast } = useToast();
 
   // URL state management
@@ -289,6 +300,41 @@ const Index = () => {
   };
 
   const handleDownload = async () => {
+    // Try Neovim listener first if enabled and connected
+    if (config.nvimListenerEnabled && nvimListenerConnected) {
+      const nvimResult = await saveToNvim(generatedConfig, 'init.lua', {
+        port: config.nvimListenerPort,
+        token: config.nvimListenerToken || undefined,
+      });
+      
+      if (nvimResult.success) {
+        toast({
+          title: "Config updated in Neovim!",
+          description: "Your init.lua has been saved and reloaded.",
+        });
+        return;
+      } else {
+        toast({
+          title: "Neovim save failed",
+          description: nvimResult.message || "Falling back to browser download.",
+          variant: "destructive",
+        });
+      }
+    }
+    
+    // Try File System Access API if available
+    if (hasDirectoryHandle) {
+      const success = await writeToConnectedDirectory('init.lua', generatedConfig);
+      if (success) {
+        toast({
+          title: "File saved successfully!",
+          description: "Your init.lua has been saved to the connected directory.",
+        });
+        return;
+      }
+    }
+    
+    // Fallback to regular download with picker if possible
     const result = await downloadToDirectory(generatedConfig, 'init.lua', config.downloadDir);
     
     if (result.method === 'picker') {

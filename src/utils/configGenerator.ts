@@ -1,4 +1,5 @@
 import { SettingsConfig } from '@/types/settings';
+import { generateNvimListenerCode } from './nvimListener';
 import { generateSettingsLua, generatePluginSettingsLua } from './settingsConfigGenerator';
 
 interface NvimConfig {
@@ -10,6 +11,9 @@ interface NvimConfig {
   leaderKey: string;
   keymaps: { [key: string]: string };
   downloadDir?: string;
+  nvimListenerEnabled?: boolean;
+  nvimListenerPort?: number;
+  nvimListenerToken?: string;
 }
 
 export const generateInitLua = (config: NvimConfig): string => {
@@ -694,6 +698,14 @@ end
         }
       }
     });
+  }
+
+  // Add Neovim listener if enabled
+  if (config.nvimListenerEnabled) {
+    initContent += '\n\n' + generateNvimListenerCode(
+      config.nvimListenerPort || 45831,
+      config.nvimListenerToken || undefined
+    );
   }
 
   return initContent;
