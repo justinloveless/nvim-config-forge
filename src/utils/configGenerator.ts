@@ -337,6 +337,18 @@ require("lazy").setup({
 `;
     }
 
+    if (plugins.includes('tabbufline')) {
+      initContent += `  -- NvChad UI for enhanced tabs and buffers
+  {
+    "nvchad/ui",
+    dependencies = { "nvim-tree/nvim-web-devicons", "nvim-lua/plenary.nvim" },
+    config = function()
+      require("nvconfig")
+    end,
+  },
+`;
+    }
+
     if (plugins.includes('dashboard')) {
       initContent += `  -- Dashboard start screen
   {
@@ -497,6 +509,28 @@ require("lazy").setup({
 
     initContent += `})
 
+-- NvChad UI configuration file for tabbufline
+if vim.fn.isdirectory(vim.fn.stdpath("config") .. "/lua") == 1 then
+  vim.g.nvconfig_path = vim.fn.stdpath("config") .. "/lua/nvconfig.lua"
+  if vim.fn.filereadable(vim.g.nvconfig_path) == 0 then
+    local file = io.open(vim.g.nvconfig_path, "w")
+    if file then 
+      file:write([[
+return {
+  ui = {
+    tabufline = {
+      enabled = true,
+      lazyload = true,
+      order = { "treeOffset", "buffers", "tabs", "btns" },
+    },
+  },
+}
+]])
+      file:close()
+    end
+  end
+end
+
 `;
   }
 
@@ -532,8 +566,13 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
       'terminal_toggle': '<cmd>terminal<CR>',
       'save_file': '<cmd>write<CR>',
       'quit': '<cmd>quit<CR>',
-      // Plugin-specific keymaps
-      'nvim_tree_toggle': '<cmd>NvimTreeToggle<CR>',
+      // Tabbufline (NvChad UI)
+      'tabbufline_next_tab': '<cmd>tabnext<CR>',
+      'tabbufline_prev_tab': '<cmd>tabprevious<CR>',
+      'tabbufline_close_tab': '<cmd>tabclose<CR>',
+      'tabbufline_next_buffer': 'function() require("nvchad.tabufline").next() end',
+      'tabbufline_prev_buffer': 'function() require("nvchad.tabufline").prev() end',
+      'tabbufline_close_buffer': 'function() require("nvchad.tabufline").close_buffer() end',
       'nvim_tree_focus': '<cmd>NvimTreeFocus<CR>',
       'nvim_tree_find_file': '<cmd>NvimTreeFindFile<CR>',
       'telescope_find_files': 'function() require("telescope.builtin").find_files() end',
@@ -576,6 +615,13 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
       'telescope_buffers': 'List buffers',
       'telescope_help_tags': 'Help tags',
       'telescope_git_files': 'Git files',
+      // Tabbufline descriptions
+      'tabbufline_next_tab': 'Next tab',
+      'tabbufline_prev_tab': 'Previous tab',
+      'tabbufline_close_tab': 'Close tab',
+      'tabbufline_next_buffer': 'Next buffer in tab',
+      'tabbufline_prev_buffer': 'Previous buffer in tab',
+      'tabbufline_close_buffer': 'Close buffer',
       'dap_toggle_breakpoint': 'Toggle breakpoint',
       'dap_continue': 'Debug continue',
       'dap_step_over': 'Debug step over',

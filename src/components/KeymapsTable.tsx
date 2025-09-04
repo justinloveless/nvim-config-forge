@@ -53,6 +53,18 @@ const PLUGIN_KEYMAPS = {
       { id: 'telescope_git_files', name: 'Git Files', description: 'Search git-tracked files' },
     ]
   },
+  'tabbufline': {
+    title: 'Tabbufline - Tab & Buffer Management',
+    icon: <Terminal className="w-5 h-5" />,
+    keymaps: [
+      { id: 'tabbufline_next_tab', name: 'Next Tab', description: 'Switch to next tab' },
+      { id: 'tabbufline_prev_tab', name: 'Previous Tab', description: 'Switch to previous tab' },
+      { id: 'tabbufline_close_tab', name: 'Close Tab', description: 'Close current tab' },
+      { id: 'tabbufline_next_buffer', name: 'Next Buffer', description: 'Switch to next buffer in tab' },
+      { id: 'tabbufline_prev_buffer', name: 'Previous Buffer', description: 'Switch to previous buffer in tab' },
+      { id: 'tabbufline_close_buffer', name: 'Close Buffer', description: 'Close current buffer' },
+    ]
+  },
   'nvim-dap': {
     title: 'nvim-dap - Debugger',
     icon: <Terminal className="w-5 h-5" />,
@@ -276,6 +288,14 @@ const getDefaultPluginKeymap = (keymapId: string): string => {
     'telescope_buffers': '<leader>fb',
     'telescope_help_tags': '<leader>fh',
     'telescope_git_files': '<leader>gf',
+    
+    // Tabbufline (NvChad UI)
+    'tabbufline_next_tab': 'gt',
+    'tabbufline_prev_tab': 'gT',
+    'tabbufline_close_tab': '<leader>tc',
+    'tabbufline_next_buffer': '<Tab>',
+    'tabbufline_prev_buffer': '<S-Tab>',
+    'tabbufline_close_buffer': '<leader>x',
     
     // nvim-dap
     'dap_toggle_breakpoint': '<leader>db',
