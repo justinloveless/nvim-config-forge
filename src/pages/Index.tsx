@@ -5,15 +5,26 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProgressIndicator } from '@/components/ProgressIndicator';
 import { WizardStep } from '@/components/WizardStep';
 import KeymapsTable from '@/components/KeymapsTable';
+import { ModernSettings } from '@/components/ModernSettings';
 import { generateInitLua, downloadFile } from '@/utils/configGenerator';
+import { getDefaultSettingsConfig } from '@/utils/settingsConfigGenerator';
+import { SettingsConfig } from '@/types/settings';
 import { useToast } from '@/hooks/use-toast';
-import { PresetStacks, NvimConfig } from '@/components/PresetStacks';
+import { PresetStacks } from '@/components/PresetStacks';
 import { InstallerScripts } from '@/components/InstallerScripts';
 import { HealthCheckAnalyzer } from '@/components/HealthCheckAnalyzer';
 import { ConfigImporter } from '@/components/ConfigImporter';
 import { Code, Palette, Plug, Settings, Download, FileText, Copy, Check, Zap, Wrench, FileUp } from 'lucide-react';
 
-// Using the NvimConfig interface from PresetStacks component
+interface NvimConfig {
+  languages: string[];
+  theme: string;
+  plugins: string[];
+  settings: string[];
+  settingsConfig?: SettingsConfig;
+  leaderKey: string;
+  keymaps: { [key: string]: string };
+}
 
 const STEPS = [
   'Quick Start',
@@ -75,6 +86,7 @@ const Index = () => {
     theme: '',
     plugins: [],
     settings: [],
+    settingsConfig: getDefaultSettingsConfig(),
     leaderKey: ' ',
     keymaps: {}
   });
@@ -120,7 +132,15 @@ const Index = () => {
       console.warn('Failed to parse keymaps from URL:', e);
     }
 
-    const newConfig = { languages, theme, plugins, settings, leaderKey, keymaps };
+    const newConfig = { 
+      languages, 
+      theme, 
+      plugins, 
+      settings, 
+      settingsConfig: getDefaultSettingsConfig(), 
+      leaderKey, 
+      keymaps 
+    };
     setCurrentStep(step);
     setConfig(newConfig);
     
@@ -198,8 +218,8 @@ const Index = () => {
     updateURL(currentStep, newConfig);
   };
 
-  const handleSettingsChange = (selectedIds: string[]) => {
-    const newConfig = { ...config, settings: selectedIds };
+  const handleSettingsConfigChange = (newSettingsConfig: SettingsConfig) => {
+    const newConfig = { ...config, settingsConfig: newSettingsConfig };
     setConfig(newConfig);
     updateURL(currentStep, newConfig);
   };
@@ -268,20 +288,28 @@ const Index = () => {
     }
   };
 
-  const handleApplyPreset = (preset: NvimConfig) => {
-    setConfig(preset);
-    setCurrentStep(1); // Go to languages step
-    updateURL(1, preset);
+  const handleApplyPreset = (preset: any) => {
+    const presetWithDefaults = { 
+      ...preset, 
+      settingsConfig: preset.settingsConfig || getDefaultSettingsConfig() 
+    };
+    setConfig(presetWithDefaults);
+    setCurrentStep(1);
+    updateURL(1, presetWithDefaults);
     toast({
       title: "Preset Applied!",
       description: "You can now customize this configuration further.",
     });
   };
 
-  const handleImportConfig = (importedConfig: NvimConfig) => {
-    setConfig(importedConfig);
-    setCurrentStep(1); // Go to languages step to customize
-    updateURL(1, importedConfig);
+  const handleImportConfig = (importedConfig: any) => {
+    const configWithDefaults = { 
+      ...importedConfig, 
+      settingsConfig: importedConfig.settingsConfig || getDefaultSettingsConfig() 
+    };
+    setConfig(configWithDefaults);
+    setCurrentStep(1);
+    updateURL(1, configWithDefaults);
     toast({
       title: "Configuration Imported!",
       description: "Your existing configuration has been loaded. You can now customize it further.",
@@ -342,13 +370,10 @@ const Index = () => {
         );
       case 4:
         return (
-          <WizardStep
-            title="Editor Settings"
-            subtitle="Configure common editor preferences. These can be changed later in your config."
-            options={SETTINGS_OPTIONS}
-            selectedOptions={config.settings}
-            onSelectionChange={handleSettingsChange}
-            multiSelect={true}
+          <ModernSettings
+            settings={config.settingsConfig || getDefaultSettingsConfig()}
+            onSettingsChange={handleSettingsConfigChange}
+            selectedPlugins={config.plugins}
           />
         );
       case 5:
@@ -755,9 +780,18 @@ const Index = () => {
             <Button
               onClick={() => {
                 setCurrentStep(0);
-                setConfig({ languages: [], theme: '', plugins: [], settings: [], leaderKey: ' ', keymaps: {} });
+                const resetConfig = { 
+                  languages: [], 
+                  theme: '', 
+                  plugins: [], 
+                  settings: [], 
+                  settingsConfig: getDefaultSettingsConfig(), 
+                  leaderKey: ' ', 
+                  keymaps: {} 
+                };
+                setConfig(resetConfig);
                 setGeneratedConfig('');
-                updateURL(0, { languages: [], theme: '', plugins: [], settings: [], leaderKey: ' ', keymaps: {} });
+                updateURL(0, resetConfig);
               }}
               variant="outline"
               size="lg"

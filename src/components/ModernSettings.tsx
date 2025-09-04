@@ -1,0 +1,398 @@
+import React, { useState, useMemo } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Search, RotateCcw, Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
+import { SETTINGS_CATEGORIES } from '@/data/settingsConfig';
+import { SettingsConfig, SettingDefinition } from '@/types/settings';
+
+interface ModernSettingsProps {
+  settings: SettingsConfig;
+  onSettingsChange: (newSettings: SettingsConfig) => void;
+  selectedPlugins: string[];
+}
+
+export const ModernSettings: React.FC<ModernSettingsProps> = ({
+  settings,
+  onSettingsChange,
+  selectedPlugins
+}) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('editor');
+  
+  // Filter categories based on selected plugins
+  const visibleCategories = useMemo(() => {
+    return SETTINGS_CATEGORIES.filter(category => {
+      // Always show core categories
+      if (['editor', 'behavior', 'ui', 'performance'].includes(category.id)) {
+        return true;
+      }
+      
+      // Check if category has any visible settings
+      const hasVisibleSettings = category.settings.some(setting => 
+        !setting.requiresPlugins || 
+        setting.requiresPlugins.some(plugin => selectedPlugins.includes(plugin))
+      );
+      
+      return hasVisibleSettings;
+    });
+  }, [selectedPlugins]);
+  
+  // Filter settings within each category
+  const getVisibleSettings = (categorySettings: SettingDefinition[]) => {
+    return categorySettings.filter(setting => {
+      // Check plugin requirements
+      if (setting.requiresPlugins && 
+          !setting.requiresPlugins.some(plugin => selectedPlugins.includes(plugin))) {
+        return false;
+      }
+      
+      // Check dependencies
+      if (setting.dependsOn) {
+        const dependsOnValue = getNestedValue(settings, setting.dependsOn);
+        if (!dependsOnValue) return false;
+      }
+      
+      // Check search query
+      if (searchQuery) {
+        const searchLower = searchQuery.toLowerCase();
+        return setting.title.toLowerCase().includes(searchLower) ||
+               setting.description.toLowerCase().includes(searchLower);
+      }
+      
+      return true;
+    });
+  };
+  
+  const getNestedValue = (obj: any, path: string): any => {
+    return path.split('.').reduce((current, key) => current?.[key], obj);
+  };
+  
+  const setNestedValue = (obj: any, path: string, value: any): any => {
+    const keys = path.split('.');
+    const result = { ...obj };
+    let current = result;
+    
+    for (let i = 0; i < keys.length - 1; i++) {
+      const key = keys[i];
+      current[key] = { ...current[key] };
+      current = current[key];
+    }
+    
+    current[keys[keys.length - 1]] = value;
+    return result;
+  };
+  
+  const handleSettingChange = (settingId: string, value: any) => {
+    const newSettings = setNestedValue(settings, settingId, value);
+    onSettingsChange(newSettings);
+  };
+  
+  const resetToDefaults = () => {
+    const defaultSettings: SettingsConfig = {
+      indentSize: 2,
+      lineWrapping: false,
+      lineNumbers: 'both',
+      showWhitespace: false,
+      cursorLine: true,
+      colorColumn: null,
+      scrollOffset: 8,
+      autoSave: false,
+      autoSaveDelay: 1000,
+      undoLevels: 1000,
+      smartCase: true,
+      ignoreCase: true,
+      splitDirection: 'below',
+      showSignColumn: true,
+      showFoldColumn: false,
+      terminalPosition: 'horizontal',
+      completion: 'advanced',
+      updateTime: 250,
+      timeoutLength: 300,
+      lazyRedraw: false,
+      telescope: {
+        previewEnabled: true,
+        historyLimit: 100,
+        ignoredPatterns: ['*.git*', 'node_modules/*', '*.lock']
+      },
+      nvimTree: {
+        width: 30,
+        autoClose: false,
+        followCurrentFile: true,
+        gitIntegration: true
+      },
+      lualine: {
+        theme: 'auto',
+        showFileEncoding: false,
+        showFileType: true,
+        showBranch: true
+      },
+      treesitter: {
+        autoInstall: true,
+        highlightEnabled: true,
+        indentEnabled: true,
+        foldingEnabled: false
+      },
+      debugging: {
+        autoOpenUI: true,
+        showInlineVariables: true,
+        breakOnException: false
+      },
+      git: {
+        showLineBlame: false,
+        showDiffInSigns: true,
+        wordDiff: false
+      }
+    };
+    
+    onSettingsChange(defaultSettings);
+  };
+  
+  const renderSettingControl = (setting: SettingDefinition) => {
+    const currentValue = getNestedValue(settings, setting.id);
+    
+    switch (setting.type) {
+      case 'boolean':
+        return (
+          <Switch
+            checked={currentValue || false}
+            onCheckedChange={(checked) => handleSettingChange(setting.id, checked)}
+          />
+        );
+        
+      case 'number':
+        if (setting.min !== undefined && setting.max !== undefined) {
+          return (
+            <div className="space-y-3">
+              <Slider
+                value={[currentValue || setting.defaultValue]}
+                onValueChange={(values) => handleSettingChange(setting.id, values[0])}
+                min={setting.min}
+                max={setting.max}
+                step={setting.step || 1}
+                className="w-full"
+              />
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>{setting.min}{setting.unit && ` ${setting.unit}`}</span>
+                <span className="font-medium text-foreground">
+                  {currentValue || setting.defaultValue}{setting.unit && ` ${setting.unit}`}
+                </span>
+                <span>{setting.max}{setting.unit && ` ${setting.unit}`}</span>
+              </div>
+            </div>
+          );
+        } else {
+          return (
+            <Input
+              type="number"
+              value={currentValue || setting.defaultValue}
+              onChange={(e) => handleSettingChange(setting.id, parseInt(e.target.value) || setting.defaultValue)}
+              min={setting.min}
+              max={setting.max}
+              step={setting.step || 1}
+            />
+          );
+        }
+        
+      case 'select':
+        return (
+          <Select
+            value={currentValue || setting.defaultValue}
+            onValueChange={(value) => handleSettingChange(setting.id, value)}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {setting.options?.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  <div>
+                    <div>{option.label}</div>
+                    {option.description && (
+                      <div className="text-xs text-muted-foreground">
+                        {option.description}
+                      </div>
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+        
+      case 'text':
+        if (setting.id.includes('ignoredPatterns')) {
+          return (
+            <Textarea
+              value={Array.isArray(currentValue) ? currentValue.join(',') : currentValue || setting.defaultValue}
+              onChange={(e) => {
+                const value = e.target.value;
+                const array = value.split(',').map(s => s.trim()).filter(Boolean);
+                handleSettingChange(setting.id, array);
+              }}
+              placeholder={setting.placeholder}
+              rows={3}
+            />
+          );
+        } else {
+          return (
+            <Input
+              value={currentValue || setting.defaultValue}
+              onChange={(e) => handleSettingChange(setting.id, e.target.value)}
+              placeholder={setting.placeholder}
+            />
+          );
+        }
+        
+      default:
+        return null;
+    }
+  };
+  
+  return (
+    <TooltipProvider>
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-bold">Editor Settings</h2>
+              <p className="text-muted-foreground">
+                Customize your Neovim experience with these comprehensive settings
+              </p>
+            </div>
+            <Button
+              onClick={resetToDefaults}
+              variant="outline"
+              size="sm"
+              className="w-fit"
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Reset to Defaults
+            </Button>
+          </div>
+          
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              placeholder="Search settings..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Categories Sidebar */}
+          <div className="lg:col-span-1">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Categories</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-1">
+                {visibleCategories.map((category) => {
+                  const visibleSettingsCount = getVisibleSettings(category.settings).length;
+                  
+                  return (
+                    <button
+                      key={category.id}
+                      onClick={() => setSelectedCategory(category.id)}
+                      className={cn(
+                        "w-full flex items-center gap-3 p-3 rounded-md text-left transition-colors",
+                        selectedCategory === category.id
+                          ? "bg-primary/10 text-primary border border-primary/20"
+                          : "hover:bg-muted/50"
+                      )}
+                    >
+                      {category.icon}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium">{category.title}</div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {visibleSettingsCount} setting{visibleSettingsCount !== 1 ? 's' : ''}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Settings Content */}
+          <div className="lg:col-span-3">
+            {visibleCategories.find(cat => cat.id === selectedCategory) && (
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    {visibleCategories.find(cat => cat.id === selectedCategory)?.icon}
+                    <div>
+                      <CardTitle>
+                        {visibleCategories.find(cat => cat.id === selectedCategory)?.title}
+                      </CardTitle>
+                      <CardDescription>
+                        {visibleCategories.find(cat => cat.id === selectedCategory)?.description}
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {getVisibleSettings(
+                      visibleCategories.find(cat => cat.id === selectedCategory)?.settings || []
+                    ).map((setting, index) => (
+                      <div key={setting.id}>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 space-y-1">
+                            <div className="flex items-center gap-2">
+                              <Label className="font-medium">
+                                {setting.title}
+                              </Label>
+                              {setting.requiresPlugins && (
+                                <Badge variant="secondary" className="text-xs">
+                                  Plugin: {setting.requiresPlugins.join(', ')}
+                                </Badge>
+                              )}
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Info className="w-4 h-4 text-muted-foreground" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="max-w-xs">{setting.description}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {setting.description}
+                            </p>
+                          </div>
+                          <div className="w-48 flex-shrink-0">
+                            {renderSettingControl(setting)}
+                          </div>
+                        </div>
+                        
+                        {index < getVisibleSettings(
+                          visibleCategories.find(cat => cat.id === selectedCategory)?.settings || []
+                        ).length - 1 && <Separator className="mt-6" />}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+      </div>
+    </TooltipProvider>
+  );
+};

@@ -1,14 +1,18 @@
+import { SettingsConfig } from '@/types/settings';
+import { generateSettingsLua, generatePluginSettingsLua } from './settingsConfigGenerator';
+
 interface NvimConfig {
   languages: string[];
   theme: string;
   plugins: string[];
   settings: string[];
+  settingsConfig?: SettingsConfig; // New comprehensive settings
   leaderKey: string;
   keymaps: { [key: string]: string };
 }
 
 export const generateInitLua = (config: NvimConfig): string => {
-  const { languages, theme, plugins, settings, leaderKey, keymaps } = config;
+  const { languages, theme, plugins, settings, settingsConfig, leaderKey, keymaps } = config;
 
   // Add leader key mapping first (before any plugins)
   const leaderKeyDisplay = leaderKey === ' ' ? 'Space' : leaderKey;
@@ -24,53 +28,48 @@ vim.g.mapleader = ${leaderKeyLua}
 vim.g.maplocalleader = ${leaderKeyLua}
 
 -- Basic Options
-vim.opt.number = true
-vim.opt.relativenumber = true
 vim.opt.mouse = 'a'
 vim.opt.clipboard = 'unnamedplus'
 vim.opt.breakindent = true
 vim.opt.undofile = true
-vim.opt.ignorecase = true
-vim.opt.smartcase = true
-vim.opt.signcolumn = 'yes'
-vim.opt.updatetime = 250
-vim.opt.timeoutlen = 300
-vim.opt.splitright = true
-vim.opt.splitbelow = true
-vim.opt.scrolloff = 10
 vim.opt.hlsearch = true
-
--- Tab settings
-vim.opt.tabstop = 2
-vim.opt.shiftwidth = 2
-vim.opt.expandtab = true
 
 -- Highlight on search, but clear on pressing <Esc> in normal mode
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 `;
 
-  // Add settings-specific configurations
-  if (settings.includes('line_numbers')) {
-    initContent += `\n-- Line numbers enabled
-vim.opt.number = true
-vim.opt.relativenumber = true
-`;
-  }
+  // Use new comprehensive settings if available
+  if (settingsConfig) {
+    initContent += generateSettingsLua(settingsConfig);
+  } else {
+    // Fallback to legacy settings for backwards compatibility
+    initContent += `\n-- Legacy Settings (fallback)\n`;
+    initContent += `vim.opt.number = true\n`;
+    initContent += `vim.opt.relativenumber = true\n`;
+    initContent += `vim.opt.signcolumn = 'yes'\n`;
+    initContent += `vim.opt.updatetime = 250\n`;
+    initContent += `vim.opt.timeoutlen = 300\n`;
+    initContent += `vim.opt.splitright = true\n`;
+    initContent += `vim.opt.splitbelow = true\n`;
+    initContent += `vim.opt.scrolloff = 10\n`;
+    initContent += `vim.opt.tabstop = 2\n`;
+    initContent += `vim.opt.shiftwidth = 2\n`;
+    initContent += `vim.opt.expandtab = true\n`;
+    initContent += `vim.opt.ignorecase = true\n`;
+    initContent += `vim.opt.smartcase = true\n`;
 
-  if (settings.includes('auto_save')) {
-    initContent += `\n-- Auto save
-vim.api.nvim_create_autocmd({'TextChanged', 'TextChangedI'}, {
-  pattern = '*',
-  command = 'silent! write',
-})
-`;
-  }
+    // Legacy settings handling
+    if (settings.includes('line_numbers')) {
+      initContent += `\n-- Line numbers enabled\nvim.opt.number = true\nvim.opt.relativenumber = true\n`;
+    }
 
-  if (settings.includes('wrap_text')) {
-    initContent += `\n-- Text wrapping
-vim.opt.wrap = true
-vim.opt.linebreak = true
-`;
+    if (settings.includes('auto_save')) {
+      initContent += `\n-- Auto save\nvim.api.nvim_create_autocmd({'TextChanged', 'TextChangedI'}, {\n  pattern = '*',\n  command = 'silent! write',\n})\n`;
+    }
+
+    if (settings.includes('wrap_text')) {
+      initContent += `\n-- Text wrapping\nvim.opt.wrap = true\nvim.opt.linebreak = true\n`;
+    }
   }
 
   // Add plugin manager setup (always include if languages are selected or plugins are chosen)
@@ -506,6 +505,7 @@ require("lazy").setup({
 `;
     }
 
+    // Close plugin setup
     initContent += `})
 
 -- NvChad UI configuration file for tabbufline
@@ -531,6 +531,11 @@ return {
 end
 
 `;
+
+    // Add plugin-specific settings if using new settings system
+    if (settingsConfig) {
+      initContent += generatePluginSettingsLua(settingsConfig, plugins);
+    }
   }
 
   // Set colorscheme
