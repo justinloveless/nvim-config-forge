@@ -145,7 +145,7 @@ require("lazy").setup({
       initContent += `
           "${lspServers.join('", "')}"
         },
-        automatic_installation = true,
+        automatic_installation = false,
       })
       
       -- Setup handlers for automatic LSP server setup
@@ -185,12 +185,13 @@ require("lazy").setup({
         initContent += `  -- Formatting and Linting (auto-included for selected languages)
   {
     "nvimtools/none-ls.nvim",
+    dependencies = { "nvim-lua/plenary.nvim" },
     config = function()
       local null_ls = require("null-ls")
       null_ls.setup({
         sources = {`;
 
-        // Add language-specific formatters and linters
+        // Add language-specific formatters (only commonly available ones)
         languages.forEach(lang => {
           switch (lang) {
             case 'typescript':
@@ -205,15 +206,6 @@ require("lazy").setup({
             case 'rust':
               initContent += `
           null_ls.builtins.formatting.rustfmt,`;
-              break;
-            case 'go':
-              initContent += `
-          null_ls.builtins.formatting.gofumpt,`;
-              break;
-            case 'c':
-            case 'cpp':
-              initContent += `
-          null_ls.builtins.formatting.clang_format,`;
               break;
             case 'lua':
               initContent += `
@@ -498,8 +490,6 @@ require("lazy").setup({
       notify.setup({
         stages = "fade_in_slide_out",
         timeout = 3000,
-        render = "compact",
-        max_width = 50,
       })
       vim.notify = notify
     end,
