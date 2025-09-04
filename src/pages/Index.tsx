@@ -457,56 +457,6 @@ const Index = () => {
               </Button>
             </div>
 
-            {/* Advanced Features Section */}
-            <div className="mt-8">
-              <Button
-                onClick={() => setShowAdvancedFeatures(!showAdvancedFeatures)}
-                variant="outline"
-                className="w-full mb-4"
-              >
-                <Zap className="w-5 h-5 mr-2" />
-                {showAdvancedFeatures ? 'Hide' : 'Show'} Advanced Tools
-              </Button>
-
-              {showAdvancedFeatures && (
-                <div className="space-y-8">
-                  <InstallerScripts config={config} generatedConfig={generatedConfig} />
-                  
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Wrench className="w-5 h-5" />
-                          Health Check Analyzer
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                          Analyze your Neovim health check output for issues and get personalized fixes.
-                        </p>
-                      </CardHeader>
-                      <CardContent>
-                        <HealthCheckAnalyzer />
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <FileUp className="w-5 h-5" />
-                          Import Existing Config
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                          Upload your existing init.lua to continue customizing from your current setup.
-                        </p>
-                      </CardHeader>
-                      <CardContent>
-                        <ConfigImporter onImportConfig={handleImportConfig} />
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-              )}
-            </div>
-
             <div className="mt-8 p-6 bg-card/50 rounded-lg border border-border">
               <h3 className="font-semibold text-nvim-green mb-3">Installation Instructions:</h3>
               <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
@@ -682,8 +632,8 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-card pb-20 md:pb-4">
-      <div className="container mx-auto px-4 py-6 md:py-12 max-w-6xl">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-card pb-24">
+      <div className="container mx-auto px-4 py-6 md:py-12 max-w-6xl mb-20">
         <div className="text-center mb-8 md:mb-16">
           <h1 className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 bg-gradient-primary bg-clip-text text-transparent">
             Neovim Config Generator
@@ -708,50 +658,52 @@ const Index = () => {
 
         </div>
 
-        {/* Advanced Features Toggle */}
-        <div className="mt-8 md:mt-16 pt-8 border-t border-border">
-          <div className="text-center">
-            <Button
-              onClick={() => setShowAdvancedFeatures(!showAdvancedFeatures)}
-              variant="ghost"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <Wrench className="w-4 h-4 mr-2" />
-              {showAdvancedFeatures ? 'Hide' : 'Show'} Advanced Features
-            </Button>
+        {/* Advanced Features Toggle - Only show on Generate page */}
+        {currentStep === STEPS.length - 1 && (
+          <div className="mt-8 md:mt-16 pt-8 border-t border-border">
+            <div className="text-center">
+              <Button
+                onClick={() => setShowAdvancedFeatures(!showAdvancedFeatures)}
+                variant="ghost"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <Wrench className="w-4 h-4 mr-2" />
+                {showAdvancedFeatures ? 'Hide' : 'Show'} Advanced Features
+              </Button>
+            </div>
+            
+            {showAdvancedFeatures && (
+              <Tabs defaultValue="installer" className="mt-8">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="installer">
+                    <Zap className="w-4 h-4 mr-2" />
+                    Quick Install
+                  </TabsTrigger>
+                  <TabsTrigger value="health">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Health Check
+                  </TabsTrigger>
+                  <TabsTrigger value="import">
+                    <FileUp className="w-4 h-4 mr-2" />
+                    Import Config
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="installer" className="mt-6">
+                  <InstallerScripts config={config} generatedConfig={generatedConfig} />
+                </TabsContent>
+                
+                <TabsContent value="health" className="mt-6">
+                  <HealthCheckAnalyzer />
+                </TabsContent>
+                
+                <TabsContent value="import" className="mt-6">
+                  <ConfigImporter onImportConfig={handleImportConfig} />
+                </TabsContent>
+              </Tabs>
+            )}
           </div>
-          
-          {showAdvancedFeatures && (
-            <Tabs defaultValue="installer" className="mt-8">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="installer">
-                  <Zap className="w-4 h-4 mr-2" />
-                  Quick Install
-                </TabsTrigger>
-                <TabsTrigger value="health">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Health Check
-                </TabsTrigger>
-                <TabsTrigger value="import">
-                  <FileUp className="w-4 h-4 mr-2" />
-                  Import Config
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="installer" className="mt-6">
-                <InstallerScripts config={config} generatedConfig={generatedConfig} />
-              </TabsContent>
-              
-              <TabsContent value="health" className="mt-6">
-                <HealthCheckAnalyzer />
-              </TabsContent>
-              
-              <TabsContent value="import" className="mt-6">
-                <ConfigImporter onImportConfig={handleImportConfig} />
-              </TabsContent>
-            </Tabs>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Floating navigation for all screen sizes */}
