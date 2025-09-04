@@ -385,15 +385,15 @@ export const ModernSettings: React.FC<ModernSettingsProps> = ({
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-6">
+                  <div className="space-y-8">
                     {getVisibleSettings(
                       visibleCategories.find(cat => cat.id === selectedCategory)?.settings || []
                     ).map((setting, index) => (
                       <div key={setting.id}>
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1 space-y-1">
+                        <div className="flex items-start gap-6">
+                          <div className="flex-1 space-y-2">
                             <div className="flex items-center gap-2">
-                              <Label className="font-medium">
+                              <Label className="font-medium text-base">
                                 {setting.title}
                               </Label>
                               {setting.requiresPlugins && (
@@ -410,31 +410,34 @@ export const ModernSettings: React.FC<ModernSettingsProps> = ({
                                 </TooltipContent>
                               </Tooltip>
                             </div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-muted-foreground leading-relaxed">
                               {setting.description}
                             </p>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-48 flex-shrink-0">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-56 flex-shrink-0">
                               {renderSettingControl(setting)}
                             </div>
-                            {isSettingChanged(setting.id) && (
+                            <div className="w-8 flex justify-center flex-shrink-0">
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => resetSingleSetting(setting.id)}
-                                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                                className={cn(
+                                  "h-8 w-8 p-0 text-muted-foreground hover:text-foreground transition-opacity",
+                                  isSettingChanged(setting.id) ? "opacity-100" : "opacity-0 pointer-events-none"
+                                )}
                                 title={`Reset ${setting.title} to default`}
                               >
                                 <ResetIcon className="w-4 h-4" />
                               </Button>
-                            )}
+                            </div>
                           </div>
                         </div>
                         
                         {index < getVisibleSettings(
                           visibleCategories.find(cat => cat.id === selectedCategory)?.settings || []
-                        ).length - 1 && <Separator className="mt-6" />}
+                        ).length - 1 && <Separator className="mt-8" />}
                       </div>
                     ))}
                   </div>
