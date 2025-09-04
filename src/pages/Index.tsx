@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProgressIndicator } from '@/components/ProgressIndicator';
 import { WizardStep } from '@/components/WizardStep';
 import KeymapsTable from '@/components/KeymapsTable';
@@ -81,7 +82,42 @@ const Index = () => {
   });
   const [generatedConfig, setGeneratedConfig] = useState<string>('');
   const [copied, setCopied] = useState(false);
+  const [copiedCommands, setCopiedCommands] = useState<{ [key: string]: boolean }>({});
   const { toast } = useToast();
+
+  const CodeBlock: React.FC<{ command: string; id: string }> = ({ command, id }) => {
+    const handleCopy = async () => {
+      try {
+        await navigator.clipboard.writeText(command);
+        setCopiedCommands(prev => ({ ...prev, [id]: true }));
+        setTimeout(() => {
+          setCopiedCommands(prev => ({ ...prev, [id]: false }));
+        }, 2000);
+      } catch (err) {
+        console.error('Failed to copy command:', err);
+      }
+    };
+
+    return (
+      <div className="relative group">
+        <code className="block bg-background/50 px-3 py-2 rounded text-sm pr-12">
+          {command}
+        </code>
+        <Button
+          onClick={handleCopy}
+          variant="ghost"
+          size="sm"
+          className="absolute right-1 top-1 h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          {copiedCommands[id] ? (
+            <Check className="w-3 h-3 text-nvim-green" />
+          ) : (
+            <Copy className="w-3 h-3" />
+          )}
+        </Button>
+      </div>
+    );
+  };
 
   const handleLanguageChange = (selectedIds: string[]) => {
     setConfig(prev => ({ ...prev, languages: selectedIds }));
@@ -286,56 +322,146 @@ const Index = () => {
               {config.languages.length > 0 && (
                 <div className="mt-6">
                   <h4 className="font-semibold text-nvim-green mb-3">Required Tools for Language Support:</h4>
-                  <div className="space-y-3">
-                    {config.languages.includes('typescript') || config.languages.includes('javascript') ? (
-                      <div>
-                        <p className="font-medium text-foreground">TypeScript/JavaScript:</p>
-                        <code className="block bg-background/50 px-3 py-2 rounded mt-1 text-sm">npm install -g prettier</code>
-                      </div>
-                    ) : null}
+                  
+                  <Tabs defaultValue="macos" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3 mb-4">
+                      <TabsTrigger value="macos">macOS</TabsTrigger>
+                      <TabsTrigger value="linux">Linux</TabsTrigger>
+                      <TabsTrigger value="windows">Windows</TabsTrigger>
+                    </TabsList>
                     
-                    {config.languages.includes('python') && (
-                      <div>
-                        <p className="font-medium text-foreground">Python:</p>
-                        <code className="block bg-background/50 px-3 py-2 rounded mt-1 text-sm">pip install black</code>
-                      </div>
-                    )}
-                    
-                    {config.languages.includes('go') && (
-                      <div>
-                        <p className="font-medium text-foreground">Go:</p>
-                        <code className="block bg-background/50 px-3 py-2 rounded mt-1 text-sm">go install mvdan.cc/gofumpt@latest</code>
-                      </div>
-                    )}
-                    
-                    {(config.languages.includes('c') || config.languages.includes('cpp')) && (
-                      <div>
-                        <p className="font-medium text-foreground">C/C++:</p>
-                        <div className="space-y-1">
-                          <p className="text-xs text-muted-foreground">macOS:</p>
-                          <code className="block bg-background/50 px-3 py-2 rounded text-sm">brew install clang-format</code>
-                          <p className="text-xs text-muted-foreground">Ubuntu/Debian:</p>
-                          <code className="block bg-background/50 px-3 py-2 rounded text-sm">sudo apt install clang-format</code>
-                          <p className="text-xs text-muted-foreground">Windows:</p>
-                          <code className="block bg-background/50 px-3 py-2 rounded text-sm">choco install llvm</code>
+                    <TabsContent value="macos" className="space-y-4">
+                      {config.languages.includes('typescript') || config.languages.includes('javascript') ? (
+                        <div>
+                          <p className="font-medium text-foreground mb-2">TypeScript/JavaScript:</p>
+                          <CodeBlock command="npm install -g prettier" id="ts-macos" />
                         </div>
-                      </div>
-                    )}
+                      ) : null}
+                      
+                      {config.languages.includes('python') && (
+                        <div>
+                          <p className="font-medium text-foreground mb-2">Python:</p>
+                          <CodeBlock command="pip install black" id="python-macos" />
+                        </div>
+                      )}
+                      
+                      {config.languages.includes('go') && (
+                        <div>
+                          <p className="font-medium text-foreground mb-2">Go:</p>
+                          <CodeBlock command="go install mvdan.cc/gofumpt@latest" id="go-macos" />
+                        </div>
+                      )}
+                      
+                      {(config.languages.includes('c') || config.languages.includes('cpp')) && (
+                        <div>
+                          <p className="font-medium text-foreground mb-2">C/C++:</p>
+                          <CodeBlock command="brew install clang-format" id="c-macos" />
+                        </div>
+                      )}
+                      
+                      {config.languages.includes('rust') && (
+                        <div>
+                          <p className="font-medium text-foreground mb-2">Rust:</p>
+                          <CodeBlock command="rustup component add rustfmt" id="rust-macos" />
+                        </div>
+                      )}
+                      
+                      {config.languages.includes('lua') && (
+                        <div>
+                          <p className="font-medium text-foreground mb-2">Lua:</p>
+                          <CodeBlock command="cargo install stylua" id="lua-macos" />
+                        </div>
+                      )}
+                    </TabsContent>
                     
-                    {config.languages.includes('rust') && (
-                      <div>
-                        <p className="font-medium text-foreground">Rust:</p>
-                        <code className="block bg-background/50 px-3 py-2 rounded mt-1 text-sm">rustup component add rustfmt</code>
-                      </div>
-                    )}
+                    <TabsContent value="linux" className="space-y-4">
+                      {config.languages.includes('typescript') || config.languages.includes('javascript') ? (
+                        <div>
+                          <p className="font-medium text-foreground mb-2">TypeScript/JavaScript:</p>
+                          <CodeBlock command="npm install -g prettier" id="ts-linux" />
+                        </div>
+                      ) : null}
+                      
+                      {config.languages.includes('python') && (
+                        <div>
+                          <p className="font-medium text-foreground mb-2">Python:</p>
+                          <CodeBlock command="pip install black" id="python-linux" />
+                        </div>
+                      )}
+                      
+                      {config.languages.includes('go') && (
+                        <div>
+                          <p className="font-medium text-foreground mb-2">Go:</p>
+                          <CodeBlock command="go install mvdan.cc/gofumpt@latest" id="go-linux" />
+                        </div>
+                      )}
+                      
+                      {(config.languages.includes('c') || config.languages.includes('cpp')) && (
+                        <div>
+                          <p className="font-medium text-foreground mb-2">C/C++:</p>
+                          <CodeBlock command="sudo apt install clang-format" id="c-linux" />
+                        </div>
+                      )}
+                      
+                      {config.languages.includes('rust') && (
+                        <div>
+                          <p className="font-medium text-foreground mb-2">Rust:</p>
+                          <CodeBlock command="rustup component add rustfmt" id="rust-linux" />
+                        </div>
+                      )}
+                      
+                      {config.languages.includes('lua') && (
+                        <div>
+                          <p className="font-medium text-foreground mb-2">Lua:</p>
+                          <CodeBlock command="cargo install stylua" id="lua-linux" />
+                        </div>
+                      )}
+                    </TabsContent>
                     
-                    {config.languages.includes('lua') && (
-                      <div>
-                        <p className="font-medium text-foreground">Lua:</p>
-                        <code className="block bg-background/50 px-3 py-2 rounded mt-1 text-sm">cargo install stylua</code>
-                      </div>
-                    )}
-                  </div>
+                    <TabsContent value="windows" className="space-y-4">
+                      {config.languages.includes('typescript') || config.languages.includes('javascript') ? (
+                        <div>
+                          <p className="font-medium text-foreground mb-2">TypeScript/JavaScript:</p>
+                          <CodeBlock command="npm install -g prettier" id="ts-windows" />
+                        </div>
+                      ) : null}
+                      
+                      {config.languages.includes('python') && (
+                        <div>
+                          <p className="font-medium text-foreground mb-2">Python:</p>
+                          <CodeBlock command="pip install black" id="python-windows" />
+                        </div>
+                      )}
+                      
+                      {config.languages.includes('go') && (
+                        <div>
+                          <p className="font-medium text-foreground mb-2">Go:</p>
+                          <CodeBlock command="go install mvdan.cc/gofumpt@latest" id="go-windows" />
+                        </div>
+                      )}
+                      
+                      {(config.languages.includes('c') || config.languages.includes('cpp')) && (
+                        <div>
+                          <p className="font-medium text-foreground mb-2">C/C++:</p>
+                          <CodeBlock command="choco install llvm" id="c-windows" />
+                        </div>
+                      )}
+                      
+                      {config.languages.includes('rust') && (
+                        <div>
+                          <p className="font-medium text-foreground mb-2">Rust:</p>
+                          <CodeBlock command="rustup component add rustfmt" id="rust-windows" />
+                        </div>
+                      )}
+                      
+                      {config.languages.includes('lua') && (
+                        <div>
+                          <p className="font-medium text-foreground mb-2">Lua:</p>
+                          <CodeBlock command="cargo install stylua" id="lua-windows" />
+                        </div>
+                      )}
+                    </TabsContent>
+                  </Tabs>
                   
                   <div className="mt-4 p-3 bg-nvim-green/10 border border-nvim-green/20 rounded">
                     <p className="text-sm text-nvim-green">
