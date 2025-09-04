@@ -236,6 +236,16 @@ const Index = () => {
     updateURL(newStep, config);
   };
 
+  const handleStepClick = (stepIndex: number) => {
+    setCurrentStep(stepIndex);
+    if (stepIndex === STEPS.length - 1) {
+      // Generate config on the last step
+      const generated = generateInitLua(config);
+      setGeneratedConfig(generated);
+    }
+    updateURL(stepIndex, config);
+  };
+
   const handleDownload = () => {
     downloadFile(generatedConfig, 'init.lua');
   };
@@ -647,13 +657,13 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-primary bg-clip-text text-transparent">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-card pb-20 md:pb-4">
+      <div className="container mx-auto px-4 py-6 md:py-12 max-w-6xl">
+        <div className="text-center mb-8 md:mb-16">
+          <h1 className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 bg-gradient-primary bg-clip-text text-transparent">
             Neovim Config Generator
           </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
             Create a personalized Neovim configuration that works perfectly for your development workflow.
             No complex setup required - just select your preferences and get a ready-to-use init.lua file.
           </p>
@@ -663,30 +673,120 @@ const Index = () => {
           currentStep={currentStep}
           totalSteps={STEPS.length}
           steps={STEPS}
+          onStepClick={handleStepClick}
         />
 
-        <div className="mb-12">
-          {renderCurrentStep()}
+        <div className="min-h-[400px] md:min-h-[600px] flex flex-col justify-between">
+          <div className="flex-1 mb-8 md:mb-12">
+            {renderCurrentStep()}
+          </div>
+
+          {/* Desktop navigation */}
+          <div className="hidden md:flex justify-between">
+            <Button
+              onClick={handleBack}
+              disabled={currentStep === 0}
+              variant="outline"
+              size="lg"
+              className="px-8"
+            >
+              Back
+            </Button>
+            
+            {currentStep < STEPS.length - 1 ? (
+              <Button
+                onClick={handleNext}
+                disabled={!canProceed()}
+                size="lg"
+                className="bg-gradient-primary hover:opacity-90 text-background font-semibold px-8"
+              >
+                {currentStep === STEPS.length - 2 ? 'Generate Config' : currentStep === 0 ? 'Next' : 'Next (or Skip)'}
+              </Button>
+            ) : (
+              <Button
+                onClick={() => {
+                  setCurrentStep(0);
+                  setConfig({ languages: [], theme: '', plugins: [], settings: [], leaderKey: ' ', keymaps: {} });
+                  setGeneratedConfig('');
+                  updateURL(0, { languages: [], theme: '', plugins: [], settings: [], leaderKey: ' ', keymaps: {} });
+                }}
+                variant="outline"
+                size="lg"
+                className="px-8"
+              >
+                Start Over
+              </Button>
+            )}
+          </div>
         </div>
 
-        <div className="flex justify-between">
+        {/* Advanced Features Toggle */}
+        <div className="mt-8 md:mt-16 pt-8 border-t border-border">
+          <div className="text-center">
+            <Button
+              onClick={() => setShowAdvancedFeatures(!showAdvancedFeatures)}
+              variant="ghost"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <Wrench className="w-4 h-4 mr-2" />
+              {showAdvancedFeatures ? 'Hide' : 'Show'} Advanced Features
+            </Button>
+          </div>
+          
+          {showAdvancedFeatures && (
+            <Tabs defaultValue="installer" className="mt-8">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="installer">
+                  <Zap className="w-4 h-4 mr-2" />
+                  Quick Install
+                </TabsTrigger>
+                <TabsTrigger value="health">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Health Check
+                </TabsTrigger>
+                <TabsTrigger value="import">
+                  <FileUp className="w-4 h-4 mr-2" />
+                  Import Config
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="installer" className="mt-6">
+                <InstallerScripts config={config} generatedConfig={generatedConfig} />
+              </TabsContent>
+              
+              <TabsContent value="health" className="mt-6">
+                <HealthCheckAnalyzer />
+              </TabsContent>
+              
+              <TabsContent value="import" className="mt-6">
+                <ConfigImporter onImportConfig={handleImportConfig} />
+              </TabsContent>
+            </Tabs>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile floating navigation */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border p-4 z-50 shadow-lg">
+        <div className="flex justify-between items-center max-w-sm mx-auto gap-3">
           <Button
             onClick={handleBack}
             disabled={currentStep === 0}
             variant="outline"
             size="lg"
+            className="flex-1"
           >
             Back
           </Button>
-          
+
           {currentStep < STEPS.length - 1 ? (
             <Button
               onClick={handleNext}
               disabled={!canProceed()}
               size="lg"
-              className="bg-gradient-primary hover:opacity-90 text-background font-semibold"
+              className="bg-gradient-primary hover:opacity-90 text-background font-semibold flex-1"
             >
-              {currentStep === STEPS.length - 2 ? 'Generate Config' : currentStep === 0 ? 'Next' : 'Next (or Skip)'}
+              {currentStep === STEPS.length - 2 ? 'Generate' : 'Next'}
             </Button>
           ) : (
             <Button
@@ -694,9 +794,11 @@ const Index = () => {
                 setCurrentStep(0);
                 setConfig({ languages: [], theme: '', plugins: [], settings: [], leaderKey: ' ', keymaps: {} });
                 setGeneratedConfig('');
+                updateURL(0, { languages: [], theme: '', plugins: [], settings: [], leaderKey: ' ', keymaps: {} });
               }}
               variant="outline"
               size="lg"
+              className="flex-1"
             >
               Start Over
             </Button>
