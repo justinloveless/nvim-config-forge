@@ -169,6 +169,7 @@ const Index = () => {
             selectedOptions={config.theme ? [config.theme] : []}
             onSelectionChange={handleThemeChange}
             multiSelect={false}
+            showThemePreviews={true}
           />
         );
       case 2:

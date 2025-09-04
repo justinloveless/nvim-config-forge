@@ -1,5 +1,6 @@
 import React from 'react';
 import { SelectionCard } from './SelectionCard';
+import { ThemePreview } from './ThemePreview';
 
 interface Option {
   id: string;
@@ -15,6 +16,7 @@ interface WizardStepProps {
   selectedOptions: string[];
   onSelectionChange: (selectedIds: string[]) => void;
   multiSelect?: boolean;
+  showThemePreviews?: boolean;
 }
 
 export const WizardStep: React.FC<WizardStepProps> = ({
@@ -23,7 +25,8 @@ export const WizardStep: React.FC<WizardStepProps> = ({
   options,
   selectedOptions,
   onSelectionChange,
-  multiSelect = true
+  multiSelect = true,
+  showThemePreviews = false
 }) => {
   const handleSelect = (id: string) => {
     if (multiSelect) {
@@ -51,15 +54,21 @@ export const WizardStep: React.FC<WizardStepProps> = ({
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {options.map((option) => (
-          <SelectionCard
-            key={option.id}
-            id={option.id}
-            title={option.title}
-            description={option.description}
-            icon={option.icon}
-            selected={selectedOptions.includes(option.id)}
-            onSelect={handleSelect}
-          />
+          <div key={option.id} className="space-y-4">
+            <SelectionCard
+              id={option.id}
+              title={option.title}
+              description={option.description}
+              icon={option.icon}
+              selected={selectedOptions.includes(option.id)}
+              onSelect={handleSelect}
+            />
+            {showThemePreviews && (
+              <div className="flex justify-center">
+                <ThemePreview themeId={option.id} />
+              </div>
+            )}
+          </div>
         ))}
       </div>
       
