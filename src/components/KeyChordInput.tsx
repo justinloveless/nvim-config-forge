@@ -167,6 +167,12 @@ const KeyChordInput: React.FC<KeyChordInputProps> = ({
   const handleKeyDown = (e: React.KeyboardEvent | KeyboardEvent) => {
     if (!isRecording) return;
 
+    // Handle Escape key to finish recording
+    if (e.code === 'Escape') {
+      handleBlur();
+      return;
+    }
+
     e.preventDefault();
     e.stopPropagation();
 
@@ -196,26 +202,9 @@ const KeyChordInput: React.FC<KeyChordInputProps> = ({
     // Clear pending modifiers
     setPendingModifiers([]);
     
-    // If this is the first key and it's the leader key, continue recording
-    if (keySequence.length === 0 && formattedKey === '<leader>') {
-      setKeySequence([formattedKey]);
-      return; // Continue recording
-    }
-    
-    // If we already have keys in sequence, add this one and finish
-    if (keySequence.length > 0) {
-      const fullSequence = [...keySequence, formattedKey];
-      const final = formatKeySequence(fullSequence);
-      onChange(final);
-      setKeySequence([]);
-      setIsRecording(false);
-      return;
-    }
-    
-    // Single key (not leader-based)
-    onChange(formattedKey);
-    setKeySequence([]);
-    setIsRecording(false);
+    // Add the key to the sequence and continue recording
+    const newSequence = [...keySequence, formattedKey];
+    setKeySequence(newSequence);
   };
 
   // Add document-level key capture when recording
@@ -249,6 +238,17 @@ const KeyChordInput: React.FC<KeyChordInputProps> = ({
     setKeySequence([]);
     setPendingModifiers([]);
     inputRef.current?.focus();
+  };
+
+  const handleBlur = () => {
+    if (isRecording && keySequence.length > 0) {
+      // Finalize the recording with current sequence
+      const final = formatKeySequence(keySequence);
+      onChange(final);
+    }
+    setIsRecording(false);
+    setKeySequence([]);
+    setPendingModifiers([]);
   };
 
   const handleClear = () => {
@@ -315,9 +315,10 @@ const KeyChordInput: React.FC<KeyChordInputProps> = ({
     <div className="relative">
       <Input
         ref={inputRef}
-        value={isRecording ? (keySequence.length > 0 ? 'Continue typing...' : 'Press keys...') : ''}
+        value={isRecording ? '' : ''}
         onKeyDown={handleKeyDown}
         onFocus={handleStartRecording}
+        onBlur={handleBlur}
         placeholder={value ? '' : placeholder}
         className={cn(
           "font-mono cursor-pointer",
@@ -329,6 +330,12 @@ const KeyChordInput: React.FC<KeyChordInputProps> = ({
       />
       
       {renderKeyChips()}
+      
+      {isRecording && (
+        <p className="text-xs text-muted-foreground mt-1">
+          Recording key sequence... Click outside or press ESC to finish
+        </p>
+      )}
       
       {value && (
         <button
