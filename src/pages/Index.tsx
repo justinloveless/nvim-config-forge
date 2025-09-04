@@ -3,16 +3,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ProgressIndicator } from '@/components/ProgressIndicator';
 import { WizardStep } from '@/components/WizardStep';
+import KeymapsTable from '@/components/KeymapsTable';
 import { generateInitLua, downloadFile } from '@/utils/configGenerator';
 import { useToast } from '@/hooks/use-toast';
-import { Code, Palette, Plug, Settings, Download, FileText, Copy, Check, Keyboard } from 'lucide-react';
+import { Code, Palette, Plug, Settings, Download, FileText, Copy, Check } from 'lucide-react';
 
 interface NvimConfig {
   languages: string[];
   theme: string;
   plugins: string[];
   settings: string[];
-  keymaps: string[];
+  leaderKey: string;
+  keymaps: { [key: string]: string };
 }
 
 const STEPS = [
@@ -60,19 +62,6 @@ const SETTINGS_OPTIONS = [
   { id: 'wrap_text', title: 'Text Wrapping', description: 'Wrap long lines for better readability', icon: <Settings className="w-5 h-5" /> },
 ];
 
-const KEYMAP_OPTIONS = [
-  { id: 'split_horizontal', title: 'Split Horizontal', description: '<leader>s - Split window horizontally', icon: <Keyboard className="w-5 h-5" /> },
-  { id: 'split_vertical', title: 'Split Vertical', description: '<leader>v - Split window vertically', icon: <Keyboard className="w-5 h-5" /> },
-  { id: 'buffer_next', title: 'Next Buffer', description: '<leader>bn - Switch to next buffer', icon: <Keyboard className="w-5 h-5" /> },
-  { id: 'buffer_prev', title: 'Previous Buffer', description: '<leader>bp - Switch to previous buffer', icon: <Keyboard className="w-5 h-5" /> },
-  { id: 'buffer_close', title: 'Close Buffer', description: '<leader>bd - Close current buffer', icon: <Keyboard className="w-5 h-5" /> },
-  { id: 'toggle_wrap', title: 'Toggle Wrap', description: '<leader>tw - Toggle line wrapping', icon: <Keyboard className="w-5 h-5" /> },
-  { id: 'toggle_numbers', title: 'Toggle Numbers', description: '<leader>tn - Toggle line numbers', icon: <Keyboard className="w-5 h-5" /> },
-  { id: 'search_replace', title: 'Search & Replace', description: '<leader>sr - Search and replace', icon: <Keyboard className="w-5 h-5" /> },
-  { id: 'select_all', title: 'Select All', description: '<leader>a - Select all text', icon: <Keyboard className="w-5 h-5" /> },
-  { id: 'terminal_toggle', title: 'Terminal', description: '<leader>t - Open terminal', icon: <Keyboard className="w-5 h-5" /> },
-];
-
 const Index = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [config, setConfig] = useState<NvimConfig>({
@@ -80,7 +69,8 @@ const Index = () => {
     theme: '',
     plugins: [],
     settings: [],
-    keymaps: []
+    leaderKey: ' ',
+    keymaps: {}
   });
   const [generatedConfig, setGeneratedConfig] = useState<string>('');
   const [copied, setCopied] = useState(false);
@@ -102,8 +92,15 @@ const Index = () => {
     setConfig(prev => ({ ...prev, settings: selectedIds }));
   };
 
-  const handleKeymapsChange = (selectedIds: string[]) => {
-    setConfig(prev => ({ ...prev, keymaps: selectedIds }));
+  const handleLeaderKeyChange = (leaderKey: string) => {
+    setConfig(prev => ({ ...prev, leaderKey }));
+  };
+
+  const handleKeymapChange = (action: string, keymap: string) => {
+    setConfig(prev => ({
+      ...prev,
+      keymaps: { ...prev.keymaps, [action]: keymap }
+    }));
   };
 
   const handleNext = () => {
@@ -200,13 +197,11 @@ const Index = () => {
         );
       case 4:
         return (
-          <WizardStep
-            title="Custom Keymaps"
-            subtitle="Set up custom key bindings with Space as leader key. All keymaps are optional and use common conventions."
-            options={KEYMAP_OPTIONS}
-            selectedOptions={config.keymaps}
-            onSelectionChange={handleKeymapsChange}
-            multiSelect={true}
+          <KeymapsTable
+            leaderKey={config.leaderKey}
+            keymaps={config.keymaps}
+            onLeaderKeyChange={handleLeaderKeyChange}
+            onKeymapChange={handleKeymapChange}
           />
         );
       case 5:
@@ -331,7 +326,7 @@ const Index = () => {
             <Button
               onClick={() => {
                 setCurrentStep(0);
-                setConfig({ languages: [], theme: '', plugins: [], settings: [], keymaps: [] });
+                setConfig({ languages: [], theme: '', plugins: [], settings: [], leaderKey: ' ', keymaps: {} });
                 setGeneratedConfig('');
               }}
               variant="outline"

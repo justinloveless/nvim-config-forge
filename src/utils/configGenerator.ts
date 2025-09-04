@@ -3,11 +3,12 @@ interface NvimConfig {
   theme: string;
   plugins: string[];
   settings: string[];
-  keymaps: string[];
+  leaderKey: string;
+  keymaps: { [key: string]: string };
 }
 
 export const generateInitLua = (config: NvimConfig): string => {
-  const { languages, theme, plugins, settings, keymaps } = config;
+  const { languages, theme, plugins, settings, leaderKey, keymaps } = config;
 
   let initContent = `-- Generated Neovim Configuration
 -- Languages: ${languages.join(', ')}
@@ -277,14 +278,12 @@ vim.cmd.colorscheme('${theme}')
   }
 
   // Add leader key mapping and custom keymaps
-  initContent += `\n-- Set leader key
-vim.g.mapleader = ' '
-vim.g.maplocalleader = ' '
-
--- Basic keymaps
-vim.keymap.set('n', '<leader>w', '<cmd>write<CR>', { desc = 'Save file' })
-vim.keymap.set('n', '<leader>q', '<cmd>quit<CR>', { desc = 'Quit' })
-vim.keymap.set('n', '<leader>h', '<cmd>nohlsearch<CR>', { desc = 'Clear highlights' })
+  const leaderKeyDisplay = leaderKey === ' ' ? 'Space' : leaderKey;
+  const leaderKeyLua = leaderKey === ' ' ? "' '" : `'${leaderKey}'`;
+  
+  initContent += `\n-- Set leader key (${leaderKeyDisplay})
+vim.g.mapleader = ${leaderKeyLua}
+vim.g.maplocalleader = ${leaderKeyLua}
 
 -- Window navigation
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
@@ -294,25 +293,43 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 `;
 
   // Add custom keymaps
-  if (keymaps.length > 0) {
+  if (Object.keys(keymaps).length > 0) {
     initContent += `\n-- Custom keymaps\n`;
     
-    const keymapConfigs = {
-      'split_horizontal': `vim.keymap.set('n', '<leader>s', '<cmd>split<CR>', { desc = 'Split window horizontally' })`,
-      'split_vertical': `vim.keymap.set('n', '<leader>v', '<cmd>vsplit<CR>', { desc = 'Split window vertically' })`,
-      'buffer_next': `vim.keymap.set('n', '<leader>bn', '<cmd>bnext<CR>', { desc = 'Next buffer' })`,
-      'buffer_prev': `vim.keymap.set('n', '<leader>bp', '<cmd>bprev<CR>', { desc = 'Previous buffer' })`,
-      'buffer_close': `vim.keymap.set('n', '<leader>bd', '<cmd>bdelete<CR>', { desc = 'Close buffer' })`,
-      'toggle_wrap': `vim.keymap.set('n', '<leader>tw', '<cmd>set wrap!<CR>', { desc = 'Toggle line wrap' })`,
-      'toggle_numbers': `vim.keymap.set('n', '<leader>tn', '<cmd>set number! relativenumber!<CR>', { desc = 'Toggle line numbers' })`,
-      'search_replace': `vim.keymap.set('n', '<leader>sr', ':%s/', { desc = 'Search and replace' })`,
-      'select_all': `vim.keymap.set('n', '<leader>a', 'ggVG', { desc = 'Select all' })`,
-      'terminal_toggle': `vim.keymap.set('n', '<leader>t', '<cmd>terminal<CR>', { desc = 'Open terminal' })`
+    const keymapCommands = {
+      'split_horizontal': '<cmd>split<CR>',
+      'split_vertical': '<cmd>vsplit<CR>',
+      'buffer_next': '<cmd>bnext<CR>',
+      'buffer_prev': '<cmd>bprev<CR>',
+      'buffer_close': '<cmd>bdelete<CR>',
+      'toggle_wrap': '<cmd>set wrap!<CR>',
+      'toggle_numbers': '<cmd>set number! relativenumber!<CR>',
+      'search_replace': ':%s/',
+      'select_all': 'ggVG',
+      'terminal_toggle': '<cmd>terminal<CR>',
+      'save_file': '<cmd>write<CR>',
+      'quit': '<cmd>quit<CR>'
     };
     
-    keymaps.forEach(keymap => {
-      if (keymapConfigs[keymap as keyof typeof keymapConfigs]) {
-        initContent += `${keymapConfigs[keymap as keyof typeof keymapConfigs]}\n`;
+    const keymapDescriptions = {
+      'split_horizontal': 'Split window horizontally',
+      'split_vertical': 'Split window vertically',
+      'buffer_next': 'Next buffer',
+      'buffer_prev': 'Previous buffer',
+      'buffer_close': 'Close buffer',
+      'toggle_wrap': 'Toggle line wrap',
+      'toggle_numbers': 'Toggle line numbers',
+      'search_replace': 'Search and replace',
+      'select_all': 'Select all',
+      'terminal_toggle': 'Open terminal',
+      'save_file': 'Save file',
+      'quit': 'Quit'
+    };
+    
+    Object.entries(keymaps).forEach(([action, keymap]) => {
+      if (keymap.trim() && keymapCommands[action as keyof typeof keymapCommands]) {
+        const processedKeymap = keymap.replace(/<leader>/g, '<leader>');
+        initContent += `vim.keymap.set('n', '${processedKeymap}', '${keymapCommands[action as keyof typeof keymapCommands]}', { desc = '${keymapDescriptions[action as keyof typeof keymapDescriptions]}' })\n`;
       }
     });
   }
