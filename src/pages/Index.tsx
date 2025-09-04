@@ -50,10 +50,8 @@ const THEME_OPTIONS = [
 
 const PLUGIN_OPTIONS = [
   { id: 'treesitter', title: 'TreeSitter', description: 'Advanced syntax highlighting and code parsing', icon: <Plug className="w-5 h-5" /> },
-  { id: 'mason', title: 'Mason', description: 'LSP server manager for language support', icon: <Plug className="w-5 h-5" /> },
   { id: 'telescope', title: 'Telescope', description: 'Fuzzy finder for files, buffers, and more', icon: <Plug className="w-5 h-5" /> },
   { id: 'nvim-tree', title: 'NvimTree', description: 'File explorer sidebar', icon: <Plug className="w-5 h-5" /> },
-  { id: 'completion', title: 'Autocompletion', description: 'Intelligent code completion with nvim-cmp', icon: <Plug className="w-5 h-5" /> },
 ];
 
 const SETTINGS_OPTIONS = [
@@ -141,7 +139,7 @@ const Index = () => {
   const canProceed = () => {
     switch (currentStep) {
       case 0: return config.languages.length > 0;
-      case 1: return config.theme !== '';
+      case 1: return true; // Theme is optional (can skip)
       case 2: return true; // Plugins are optional
       case 3: return true; // Settings are optional
       case 4: return true; // Keymaps are optional
@@ -166,7 +164,7 @@ const Index = () => {
         return (
           <WizardStep
             title="Choose Your Theme"
-            subtitle="Pick a color scheme that makes coding enjoyable for your eyes."
+            subtitle="Pick a color scheme that makes coding enjoyable for your eyes. You can skip this to use the default theme."
             options={THEME_OPTIONS}
             selectedOptions={config.theme ? [config.theme] : []}
             onSelectionChange={handleThemeChange}
@@ -177,7 +175,7 @@ const Index = () => {
         return (
           <WizardStep
             title="Essential Plugins"
-            subtitle="Select plugins to enhance your Neovim experience. All selections are optional."
+            subtitle="Select plugins to enhance your Neovim experience. LSP servers and completion are automatically included for your selected languages. All selections here are optional."
             options={PLUGIN_OPTIONS}
             selectedOptions={config.plugins}
             onSelectionChange={handlePluginChange}
@@ -212,7 +210,8 @@ const Index = () => {
                 Your Configuration is Ready!
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Here's a preview of your generated init.lua file. Click download to save it to your computer.
+                Here's your generated init.lua file with automatic LSP servers and linters for {config.languages.join(', ')}. 
+                Click download to save it to your computer.
               </p>
             </div>
             
@@ -320,7 +319,7 @@ const Index = () => {
               size="lg"
               className="bg-gradient-primary hover:opacity-90 text-background font-semibold"
             >
-              {currentStep === STEPS.length - 2 ? 'Generate Config' : 'Next'}
+              {currentStep === STEPS.length - 2 ? 'Generate Config' : currentStep === 0 ? 'Next' : 'Next (or Skip)'}
             </Button>
           ) : (
             <Button

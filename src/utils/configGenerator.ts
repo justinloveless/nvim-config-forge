@@ -65,8 +65,8 @@ vim.opt.linebreak = true
 `;
   }
 
-  // Add plugin manager setup
-  if (plugins.length > 0) {
+  // Add plugin manager setup (always include if languages are selected or plugins are chosen)
+  if (plugins.length > 0 || languages.length > 0) {
     initContent += `\n-- Bootstrap lazy.nvim plugin manager
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
@@ -102,47 +102,9 @@ require("lazy").setup({
       }
     }
 
-    // Add plugins
-    if (plugins.includes('treesitter')) {
-      const langList = languages.map(lang => {
-        const langMap: { [key: string]: string } = {
-          'typescript': 'typescript',
-          'javascript': 'javascript',
-          'python': 'python',
-          'rust': 'rust',
-          'go': 'go',
-          'c': 'c',
-          'cpp': 'cpp',
-          'csharp': 'c_sharp',
-          'java': 'java',
-          'lua': 'lua',
-          'vim': 'vim',
-          'bash': 'bash',
-          'json': 'json',
-          'yaml': 'yaml',
-          'html': 'html',
-          'css': 'css'
-        };
-        return langMap[lang] || lang;
-      }).join('", "');
-
-      initContent += `  -- Syntax highlighting
-  {
-    "nvim-treesitter/nvim-treesitter",
-    build = ":TSUpdate",
-    config = function()
-      require("nvim-treesitter.configs").setup({
-        ensure_installed = { "${langList}" },
-        highlight = { enable = true },
-        indent = { enable = true },
-      })
-    end,
-  },
-`;
-    }
-
-    if (plugins.includes('mason')) {
-      initContent += `  -- LSP Manager
+    // Auto-include Mason and LSP for selected languages
+    if (languages.length > 0) {
+      initContent += `  -- LSP Manager (auto-included for language support)
   {
     "williamboman/mason.nvim",
     config = function()
@@ -155,7 +117,7 @@ require("lazy").setup({
       require("mason-lspconfig").setup({
         ensure_installed = {`;
 
-      // Add language servers based on selected languages
+      // Add language servers and linters based on selected languages
       const lspServers = languages.map(lang => {
         const serverMap: { [key: string]: string } = {
           'typescript': 'tsserver',
@@ -172,8 +134,26 @@ require("lazy").setup({
         return serverMap[lang];
       }).filter(Boolean);
 
+      const linters = languages.map(lang => {
+        const linterMap: { [key: string]: string[] } = {
+          'typescript': ['eslint_d', 'prettier'],
+          'javascript': ['eslint_d', 'prettier'],
+          'python': ['flake8', 'black'],
+          'rust': ['rustfmt'],
+          'go': ['gofmt', 'golangci-lint'],
+          'c': ['clang-format'],
+          'cpp': ['clang-format'],
+          'csharp': ['csharpier'],
+          'java': ['google-java-format'],
+          'lua': ['stylua']
+        };
+        return linterMap[lang] || [];
+      }).flat();
+
+      const allTools = [...lspServers, ...linters].filter(Boolean);
+
       initContent += `
-          "${lspServers.join('", "')}"
+          "${allTools.join('", "')}"
         },
       })
     end,
@@ -188,47 +168,71 @@ require("lazy").setup({
 
       // Setup each LSP server
       lspServers.forEach(server => {
-        initContent += `      lspconfig.${server}.setup({ capabilities = capabilities })
+        if (server) {
+          initContent += `      lspconfig.${server}.setup({ capabilities = capabilities })
 `;
+        }
       });
 
       initContent += `    end,
   },
 `;
-    }
 
-    if (plugins.includes('telescope')) {
-      initContent += `  -- Fuzzy finder
+      // Add formatting and linting support
+      if (linters.length > 0) {
+        initContent += `  -- Formatting and Linting (auto-included for selected languages)
   {
-    "nvim-telescope/telescope.nvim",
-    tag = "0.1.5",
-    dependencies = { "nvim-lua/plenary.nvim" },
+    "jose-elias-alvarez/null-ls.nvim",
     config = function()
-      local builtin = require('telescope.builtin')
-      vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
-      vim.keymap.set('n', '<leader>fg', builtin.live_grep, {})
-      vim.keymap.set('n', '<leader>fb', builtin.buffers, {})
-      vim.keymap.set('n', '<leader>fh', builtin.help_tags, {})
+      local null_ls = require("null-ls")
+      null_ls.setup({
+        sources = {`;
+
+        // Add language-specific formatters and linters
+        languages.forEach(lang => {
+          switch (lang) {
+            case 'typescript':
+            case 'javascript':
+              initContent += `
+          null_ls.builtins.diagnostics.eslint_d,
+          null_ls.builtins.formatting.prettier,`;
+              break;
+            case 'python':
+              initContent += `
+          null_ls.builtins.diagnostics.flake8,
+          null_ls.builtins.formatting.black,`;
+              break;
+            case 'rust':
+              initContent += `
+          null_ls.builtins.formatting.rustfmt,`;
+              break;
+            case 'go':
+              initContent += `
+          null_ls.builtins.formatting.gofmt,
+          null_ls.builtins.diagnostics.golangci_lint,`;
+              break;
+            case 'c':
+            case 'cpp':
+              initContent += `
+          null_ls.builtins.formatting.clang_format,`;
+              break;
+            case 'lua':
+              initContent += `
+          null_ls.builtins.formatting.stylua,`;
+              break;
+          }
+        });
+
+        initContent += `
+        },
+      })
     end,
   },
 `;
-    }
+      }
 
-    if (plugins.includes('nvim-tree')) {
-      initContent += `  -- File explorer
-  {
-    "nvim-tree/nvim-tree.lua",
-    dependencies = { "nvim-tree/nvim-web-devicons" },
-    config = function()
-      require("nvim-tree").setup()
-      vim.keymap.set('n', '<leader>e', '<cmd>NvimTreeToggle<CR>')
-    end,
-  },
-`;
-    }
-
-    if (plugins.includes('completion')) {
-      initContent += `  -- Autocompletion
+      // Auto-include completion for languages
+      initContent += `  -- Autocompletion (auto-included for language support)
   {
     "hrsh7th/nvim-cmp",
     dependencies = {
@@ -260,6 +264,75 @@ require("lazy").setup({
           { name = 'buffer' },
         })
       })
+    end,
+  },
+`;
+    }
+
+    // Add optional plugins
+    if (plugins.includes('treesitter')) {
+      const langList = languages.map(lang => {
+        const langMap: { [key: string]: string } = {
+          'typescript': 'typescript',
+          'javascript': 'javascript',
+          'python': 'python',
+          'rust': 'rust',
+          'go': 'go',
+          'c': 'c',
+          'cpp': 'cpp',
+          'csharp': 'c_sharp',
+          'java': 'java',
+          'lua': 'lua',
+          'vim': 'vim',
+          'bash': 'bash',
+          'json': 'json',
+          'yaml': 'yaml',
+          'html': 'html',
+          'css': 'css'
+        };
+        return langMap[lang] || lang;
+      }).join('", "');
+
+      initContent += `  -- Enhanced Syntax highlighting
+  {
+    "nvim-treesitter/nvim-treesitter",
+    build = ":TSUpdate",
+    config = function()
+      require("nvim-treesitter.configs").setup({
+        ensure_installed = { "${langList}" },
+        highlight = { enable = true },
+        indent = { enable = true },
+      })
+    end,
+  },
+`;
+    }
+
+    if (plugins.includes('telescope')) {
+      initContent += `  -- Fuzzy finder
+  {
+    "nvim-telescope/telescope.nvim",
+    tag = "0.1.5",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = function()
+      local builtin = require('telescope.builtin')
+      vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
+      vim.keymap.set('n', '<leader>fg', builtin.live_grep, {})
+      vim.keymap.set('n', '<leader>fb', builtin.buffers, {})
+      vim.keymap.set('n', '<leader>fh', builtin.help_tags, {})
+    end,
+  },
+`;
+    }
+
+    if (plugins.includes('nvim-tree')) {
+      initContent += `  -- File explorer
+  {
+    "nvim-tree/nvim-tree.lua",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    config = function()
+      require("nvim-tree").setup()
+      vim.keymap.set('n', '<leader>e', '<cmd>NvimTreeToggle<CR>')
     end,
   },
 `;
