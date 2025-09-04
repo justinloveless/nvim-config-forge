@@ -117,7 +117,7 @@ require("lazy").setup({
       require("mason-lspconfig").setup({
         ensure_installed = {`;
 
-      // Add language servers and linters based on selected languages
+      // Add only LSP servers based on selected languages
       const lspServers = languages.map(lang => {
         const serverMap: { [key: string]: string } = {
           'typescript': 'tsserver',
@@ -134,26 +134,8 @@ require("lazy").setup({
         return serverMap[lang];
       }).filter(Boolean);
 
-      const linters = languages.map(lang => {
-        const linterMap: { [key: string]: string[] } = {
-          'typescript': ['eslint_d', 'prettier'],
-          'javascript': ['eslint_d', 'prettier'],
-          'python': ['flake8', 'black'],
-          'rust': ['rustfmt'],
-          'go': ['gofmt', 'golangci-lint'],
-          'c': ['clang-format'],
-          'cpp': ['clang-format'],
-          'csharp': ['csharpier'],
-          'java': ['google-java-format'],
-          'lua': ['stylua']
-        };
-        return linterMap[lang] || [];
-      }).flat();
-
-      const allTools = [...lspServers, ...linters].filter(Boolean);
-
       initContent += `
-          "${allTools.join('", "')}"
+          "${lspServers.join('", "')}"
         },
       })
     end,
@@ -179,7 +161,11 @@ require("lazy").setup({
 `;
 
       // Add formatting and linting support
-      if (linters.length > 0) {
+      const hasFormatters = languages.some(lang => 
+        ['typescript', 'javascript', 'python', 'rust', 'go', 'c', 'cpp', 'csharp', 'java', 'lua'].includes(lang)
+      );
+      
+      if (hasFormatters) {
         initContent += `  -- Formatting and Linting (auto-included for selected languages)
   {
     "jose-elias-alvarez/null-ls.nvim",
@@ -215,6 +201,14 @@ require("lazy").setup({
             case 'cpp':
               initContent += `
           null_ls.builtins.formatting.clang_format,`;
+              break;
+            case 'csharp':
+              initContent += `
+          null_ls.builtins.formatting.csharpier,`;
+              break;
+            case 'java':
+              initContent += `
+          null_ls.builtins.formatting.google_java_format,`;
               break;
             case 'lua':
               initContent += `
