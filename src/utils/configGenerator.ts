@@ -145,6 +145,14 @@ require("lazy").setup({
       initContent += `
           "${lspServers.join('", "')}"
         },
+        automatic_installation = true,
+      })
+      
+      -- Setup handlers for automatic LSP server setup
+      require("mason-lspconfig").setup_handlers({
+        function(server_name)
+          require("lspconfig")[server_name].setup({})
+        end,
       })
     end,
   },
@@ -188,12 +196,10 @@ require("lazy").setup({
             case 'typescript':
             case 'javascript':
               initContent += `
-          null_ls.builtins.diagnostics.eslint_d,
           null_ls.builtins.formatting.prettier,`;
               break;
             case 'python':
               initContent += `
-          null_ls.builtins.diagnostics.flake8,
           null_ls.builtins.formatting.black,`;
               break;
             case 'rust':
@@ -202,21 +208,12 @@ require("lazy").setup({
               break;
             case 'go':
               initContent += `
-          null_ls.builtins.formatting.gofmt,
-          null_ls.builtins.diagnostics.golangci_lint,`;
+          null_ls.builtins.formatting.gofumpt,`;
               break;
             case 'c':
             case 'cpp':
               initContent += `
           null_ls.builtins.formatting.clang_format,`;
-              break;
-            case 'csharp':
-              initContent += `
-          null_ls.builtins.formatting.csharpier,`;
-              break;
-            case 'java':
-              initContent += `
-          null_ls.builtins.formatting.google_java_format,`;
               break;
             case 'lua':
               initContent += `
@@ -497,11 +494,14 @@ require("lazy").setup({
   {
     "rcarriga/nvim-notify",
     config = function()
-      vim.notify = require("notify")
-      require("notify").setup({
+      local notify = require("notify")
+      notify.setup({
         stages = "fade_in_slide_out",
         timeout = 3000,
+        render = "compact",
+        max_width = 50,
       })
+      vim.notify = notify
     end,
   },
 `;
@@ -574,6 +574,7 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
       'tabbufline_next_buffer': 'function() require("nvchad.tabufline").next() end',
       'tabbufline_prev_buffer': 'function() require("nvchad.tabufline").prev() end',
       'tabbufline_close_buffer': 'function() require("nvchad.tabufline").close_buffer() end',
+      'nvim_tree_toggle': '<cmd>NvimTreeToggle<CR>',
       'nvim_tree_focus': '<cmd>NvimTreeFocus<CR>',
       'nvim_tree_find_file': '<cmd>NvimTreeFindFile<CR>',
       'telescope_find_files': 'function() require("telescope.builtin").find_files() end',
