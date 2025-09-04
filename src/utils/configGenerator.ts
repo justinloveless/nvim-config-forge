@@ -318,10 +318,7 @@ require("lazy").setup({
     dependencies = { "nvim-lua/plenary.nvim" },
     config = function()
       local builtin = require('telescope.builtin')
-      vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
-      vim.keymap.set('n', '<leader>fg', builtin.live_grep, {})
-      vim.keymap.set('n', '<leader>fb', builtin.buffers, {})
-      vim.keymap.set('n', '<leader>fh', builtin.help_tags, {})
+      -- Telescope keymaps will be handled by custom keymaps section
     end,
   },
 `;
@@ -334,9 +331,7 @@ require("lazy").setup({
     dependencies = { "nvim-tree/nvim-web-devicons" },
     config = function()
       require("nvim-tree").setup()
-      vim.keymap.set('n', '<leader>e', '<cmd>NvimTreeToggle<CR>', { desc = 'Toggle file explorer' })
-      vim.keymap.set('n', '<leader>ef', '<cmd>NvimTreeFocus<CR>', { desc = 'Focus file explorer' })
-      vim.keymap.set('n', '<leader>ec', '<cmd>NvimTreeCollapse<CR>', { desc = 'Collapse file explorer' })
+      -- NvimTree keymaps will be handled by custom keymaps section
     end,
   },
 `;
@@ -435,11 +430,7 @@ require("lazy").setup({
           changedelete = { text = '~' },
         },
       })
-      vim.keymap.set('n', '<leader>gb', '<cmd>Gitsigns blame_line<CR>', { desc = 'Git blame line' })
-      vim.keymap.set('n', '<leader>gd', '<cmd>Gitsigns diffthis<CR>', { desc = 'Git diff' })
-      vim.keymap.set('n', '<leader>gh', '<cmd>Gitsigns preview_hunk<CR>', { desc = 'Preview hunk' })
-      vim.keymap.set('n', '<leader>gr', '<cmd>Gitsigns reset_hunk<CR>', { desc = 'Reset hunk' })
-      vim.keymap.set('n', '<leader>gs', '<cmd>Gitsigns stage_hunk<CR>', { desc = 'Stage hunk' })
+      -- GitSigns keymaps will be handled by custom keymaps section
     end,
   },
 `;
@@ -483,13 +474,7 @@ require("lazy").setup({
         dapui.close()
       end
       
-      vim.keymap.set('n', '<F5>', function() dap.continue() end, { desc = 'Debug: Continue' })
-      vim.keymap.set('n', '<F10>', function() dap.step_over() end, { desc = 'Debug: Step over' })
-      vim.keymap.set('n', '<F11>', function() dap.step_into() end, { desc = 'Debug: Step into' })
-      vim.keymap.set('n', '<F12>', function() dap.step_out() end, { desc = 'Debug: Step out' })
-      vim.keymap.set('n', '<leader>db', function() dap.toggle_breakpoint() end, { desc = 'Debug: Toggle breakpoint' })
-      vim.keymap.set('n', '<leader>dr', function() dap.repl.open() end, { desc = 'Debug: Open REPL' })
-      vim.keymap.set('n', '<leader>du', function() dapui.toggle() end, { desc = 'Debug: Toggle UI' })
+      -- DAP keymaps will be handled by custom keymaps section
     end,
   },
 `;
@@ -546,7 +531,27 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
       'select_all': 'ggVG',
       'terminal_toggle': '<cmd>terminal<CR>',
       'save_file': '<cmd>write<CR>',
-      'quit': '<cmd>quit<CR>'
+      'quit': '<cmd>quit<CR>',
+      // Plugin-specific keymaps
+      'nvim_tree_toggle': '<cmd>NvimTreeToggle<CR>',
+      'nvim_tree_focus': '<cmd>NvimTreeFocus<CR>',
+      'nvim_tree_find_file': '<cmd>NvimTreeFindFile<CR>',
+      'telescope_find_files': 'function() require("telescope.builtin").find_files() end',
+      'telescope_live_grep': 'function() require("telescope.builtin").live_grep() end',
+      'telescope_buffers': 'function() require("telescope.builtin").buffers() end',
+      'telescope_help_tags': 'function() require("telescope.builtin").help_tags() end',
+      'telescope_git_files': 'function() require("telescope.builtin").git_files() end',
+      'dap_toggle_breakpoint': 'function() require("dap").toggle_breakpoint() end',
+      'dap_continue': 'function() require("dap").continue() end',
+      'dap_step_over': 'function() require("dap").step_over() end',
+      'dap_step_into': 'function() require("dap").step_into() end',
+      'dap_step_out': 'function() require("dap").step_out() end',
+      'gitsigns_next_hunk': 'function() require("gitsigns").next_hunk() end',
+      'gitsigns_prev_hunk': 'function() require("gitsigns").prev_hunk() end',
+      'gitsigns_stage_hunk': 'function() require("gitsigns").stage_hunk() end',
+      'gitsigns_reset_hunk': 'function() require("gitsigns").reset_hunk() end',
+      'gitsigns_preview_hunk': 'function() require("gitsigns").preview_hunk() end',
+      'which_key_show': '<cmd>WhichKey<CR>'
     };
     
     const keymapDescriptions = {
@@ -561,13 +566,41 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
       'select_all': 'Select all',
       'terminal_toggle': 'Open terminal',
       'save_file': 'Save file',
-      'quit': 'Quit'
+      'quit': 'Quit',
+      // Plugin-specific descriptions
+      'nvim_tree_toggle': 'Toggle file explorer',
+      'nvim_tree_focus': 'Focus file explorer',
+      'nvim_tree_find_file': 'Find current file in explorer',
+      'telescope_find_files': 'Find files',
+      'telescope_live_grep': 'Search text in files',
+      'telescope_buffers': 'List buffers',
+      'telescope_help_tags': 'Help tags',
+      'telescope_git_files': 'Git files',
+      'dap_toggle_breakpoint': 'Toggle breakpoint',
+      'dap_continue': 'Debug continue',
+      'dap_step_over': 'Debug step over',
+      'dap_step_into': 'Debug step into',
+      'dap_step_out': 'Debug step out',
+      'gitsigns_next_hunk': 'Next git hunk',
+      'gitsigns_prev_hunk': 'Previous git hunk',
+      'gitsigns_stage_hunk': 'Stage git hunk',
+      'gitsigns_reset_hunk': 'Reset git hunk',
+      'gitsigns_preview_hunk': 'Preview git hunk',
+      'which_key_show': 'Show keybindings'
     };
     
     Object.entries(keymaps).forEach(([action, keymap]) => {
       if (keymap.trim() && keymapCommands[action as keyof typeof keymapCommands]) {
         const processedKeymap = keymap.replace(/<leader>/g, '<leader>');
-        initContent += `vim.keymap.set('n', '${processedKeymap}', '${keymapCommands[action as keyof typeof keymapCommands]}', { desc = '${keymapDescriptions[action as keyof typeof keymapDescriptions]}' })\n`;
+        const command = keymapCommands[action as keyof typeof keymapCommands];
+        const description = keymapDescriptions[action as keyof typeof keymapDescriptions];
+        
+        // Handle function keymaps differently
+        if (command.startsWith('function()')) {
+          initContent += `vim.keymap.set('n', '${processedKeymap}', ${command}, { desc = '${description}' })\n`;
+        } else {
+          initContent += `vim.keymap.set('n', '${processedKeymap}', '${command}', { desc = '${description}' })\n`;
+        }
       }
     });
   }
