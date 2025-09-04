@@ -1,25 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProgressIndicator } from '@/components/ProgressIndicator';
 import { WizardStep } from '@/components/WizardStep';
 import KeymapsTable from '@/components/KeymapsTable';
 import { generateInitLua, downloadFile } from '@/utils/configGenerator';
 import { useToast } from '@/hooks/use-toast';
-import { Code, Palette, Plug, Settings, Download, FileText, Copy, Check } from 'lucide-react';
+import { PresetStacks, NvimConfig } from '@/components/PresetStacks';
+import { InstallerScripts } from '@/components/InstallerScripts';
+import { HealthCheckAnalyzer } from '@/components/HealthCheckAnalyzer';
+import { ConfigImporter } from '@/components/ConfigImporter';
+import { Code, Palette, Plug, Settings, Download, FileText, Copy, Check, Zap, Wrench, FileUp } from 'lucide-react';
 
-interface NvimConfig {
-  languages: string[];
-  theme: string;
-  plugins: string[];
-  settings: string[];
-  leaderKey: string;
-  keymaps: { [key: string]: string };
-}
+// Using the NvimConfig interface from PresetStacks component
 
 const STEPS = [
-  'Languages',
+  'Quick Start',
+  'Languages', 
   'Theme',
   'Plugins',
   'Settings',
@@ -83,6 +81,7 @@ const Index = () => {
   const [generatedConfig, setGeneratedConfig] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [copiedCommands, setCopiedCommands] = useState<{ [key: string]: boolean }>({});
+  const [showAdvancedFeatures, setShowAdvancedFeatures] = useState(false);
   const { toast } = useToast();
 
   // URL state management
@@ -259,13 +258,34 @@ const Index = () => {
     }
   };
 
+  const handleApplyPreset = (preset: NvimConfig) => {
+    setConfig(preset);
+    setCurrentStep(1); // Go to languages step
+    updateURL(1, preset);
+    toast({
+      title: "Preset Applied!",
+      description: "You can now customize this configuration further.",
+    });
+  };
+
+  const handleImportConfig = (importedConfig: NvimConfig) => {
+    setConfig(importedConfig);
+    setCurrentStep(1); // Go to languages step to customize
+    updateURL(1, importedConfig);
+    toast({
+      title: "Configuration Imported!",
+      description: "Your existing configuration has been loaded. You can now customize it further.",
+    });
+  };
+
   const canProceed = () => {
     switch (currentStep) {
-      case 0: return config.languages.length > 0;
-      case 1: return true; // Theme is optional (can skip)
-      case 2: return true; // Plugins are optional
-      case 3: return true; // Settings are optional
-      case 4: return true; // Keymaps are optional
+      case 0: return true; // Quick start step
+      case 1: return config.languages.length > 0; // Languages step
+      case 2: return true; // Theme is optional (can skip)
+      case 3: return true; // Plugins are optional
+      case 4: return true; // Settings are optional
+      case 5: return true; // Keymaps are optional
       default: return true;
     }
   };
@@ -273,6 +293,10 @@ const Index = () => {
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 0:
+        return (
+          <PresetStacks onApplyPreset={handleApplyPreset} onImportConfig={handleImportConfig} />
+        );
+      case 1:
         return (
           <WizardStep
             title="Select Programming Languages"
@@ -283,7 +307,7 @@ const Index = () => {
             multiSelect={true}
           />
         );
-      case 1:
+      case 2:
         return (
           <WizardStep
             title="Choose Your Theme"
@@ -295,7 +319,7 @@ const Index = () => {
             showThemePreviews={true}
           />
         );
-      case 2:
+      case 3:
         return (
           <WizardStep
             title="Essential Plugins"
@@ -306,7 +330,7 @@ const Index = () => {
             multiSelect={true}
           />
         );
-      case 3:
+      case 4:
         return (
           <WizardStep
             title="Editor Settings"
@@ -317,7 +341,7 @@ const Index = () => {
             multiSelect={true}
           />
         );
-      case 4:
+      case 5:
         return (
           <KeymapsTable
             leaderKey={config.leaderKey}
@@ -327,7 +351,7 @@ const Index = () => {
             onKeymapChange={handleKeymapChange}
           />
         );
-      case 5:
+      case 6:
         return (
           <div className="space-y-8">
             <div className="text-center space-y-4">
@@ -396,6 +420,56 @@ const Index = () => {
                 <Copy className="w-5 h-5 mr-2" />
                 Share Configuration
               </Button>
+            </div>
+
+            {/* Advanced Features Section */}
+            <div className="mt-8">
+              <Button
+                onClick={() => setShowAdvancedFeatures(!showAdvancedFeatures)}
+                variant="outline"
+                className="w-full mb-4"
+              >
+                <Zap className="w-5 h-5 mr-2" />
+                {showAdvancedFeatures ? 'Hide' : 'Show'} Advanced Tools
+              </Button>
+
+              {showAdvancedFeatures && (
+                <div className="space-y-8">
+                  <InstallerScripts config={config} generatedConfig={generatedConfig} />
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Wrench className="w-5 h-5" />
+                          Health Check Analyzer
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          Analyze your Neovim health check output for issues and get personalized fixes.
+                        </p>
+                      </CardHeader>
+                      <CardContent>
+                        <HealthCheckAnalyzer />
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <FileUp className="w-5 h-5" />
+                          Import Existing Config
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          Upload your existing init.lua to continue customizing from your current setup.
+                        </p>
+                      </CardHeader>
+                      <CardContent>
+                        <ConfigImporter onImportConfig={handleImportConfig} />
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="mt-8 p-6 bg-card/50 rounded-lg border border-border">
