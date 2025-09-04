@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -85,6 +85,68 @@ const Index = () => {
   const [copiedCommands, setCopiedCommands] = useState<{ [key: string]: boolean }>({});
   const { toast } = useToast();
 
+  // URL state management
+  const updateURL = (step: number, newConfig: NvimConfig) => {
+    const params = new URLSearchParams();
+    params.set('step', step.toString());
+    if (newConfig.languages.length > 0) params.set('languages', newConfig.languages.join(','));
+    if (newConfig.theme) params.set('theme', newConfig.theme);
+    if (newConfig.plugins.length > 0) params.set('plugins', newConfig.plugins.join(','));
+    if (newConfig.settings.length > 0) params.set('settings', newConfig.settings.join(','));
+    if (newConfig.leaderKey !== ' ') params.set('leaderKey', newConfig.leaderKey);
+    if (Object.keys(newConfig.keymaps).length > 0) {
+      params.set('keymaps', JSON.stringify(newConfig.keymaps));
+    }
+    
+    const newURL = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState({}, '', newURL);
+  };
+
+  const loadFromURL = () => {
+    const params = new URLSearchParams(window.location.search);
+    const step = parseInt(params.get('step') || '0');
+    const languages = params.get('languages')?.split(',').filter(Boolean) || [];
+    const theme = params.get('theme') || '';
+    const plugins = params.get('plugins')?.split(',').filter(Boolean) || [];
+    const settings = params.get('settings')?.split(',').filter(Boolean) || [];
+    const leaderKey = params.get('leaderKey') || ' ';
+    
+    let keymaps = {};
+    try {
+      const keymapsParam = params.get('keymaps');
+      if (keymapsParam) {
+        keymaps = JSON.parse(keymapsParam);
+      }
+    } catch (e) {
+      console.warn('Failed to parse keymaps from URL:', e);
+    }
+
+    const newConfig = { languages, theme, plugins, settings, leaderKey, keymaps };
+    setCurrentStep(step);
+    setConfig(newConfig);
+    
+    // Generate config if on final step
+    if (step === STEPS.length - 1) {
+      const generated = generateInitLua(newConfig);
+      setGeneratedConfig(generated);
+    }
+  };
+
+  // Load state from URL on component mount
+  useEffect(() => {
+    loadFromURL();
+  }, []);
+
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      loadFromURL();
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const CodeBlock: React.FC<{ command: string; id: string }> = ({ command, id }) => {
     const handleCopy = async () => {
       try {
@@ -120,43 +182,59 @@ const Index = () => {
   };
 
   const handleLanguageChange = (selectedIds: string[]) => {
-    setConfig(prev => ({ ...prev, languages: selectedIds }));
+    const newConfig = { ...config, languages: selectedIds };
+    setConfig(newConfig);
+    updateURL(currentStep, newConfig);
   };
 
   const handleThemeChange = (selectedIds: string[]) => {
-    setConfig(prev => ({ ...prev, theme: selectedIds[0] || '' }));
+    const newConfig = { ...config, theme: selectedIds[0] || '' };
+    setConfig(newConfig);
+    updateURL(currentStep, newConfig);
   };
 
   const handlePluginChange = (selectedIds: string[]) => {
-    setConfig(prev => ({ ...prev, plugins: selectedIds }));
+    const newConfig = { ...config, plugins: selectedIds };
+    setConfig(newConfig);
+    updateURL(currentStep, newConfig);
   };
 
   const handleSettingsChange = (selectedIds: string[]) => {
-    setConfig(prev => ({ ...prev, settings: selectedIds }));
+    const newConfig = { ...config, settings: selectedIds };
+    setConfig(newConfig);
+    updateURL(currentStep, newConfig);
   };
 
   const handleLeaderKeyChange = (leaderKey: string) => {
-    setConfig(prev => ({ ...prev, leaderKey }));
+    const newConfig = { ...config, leaderKey };
+    setConfig(newConfig);
+    updateURL(currentStep, newConfig);
   };
 
   const handleKeymapChange = (action: string, keymap: string) => {
-    setConfig(prev => ({
-      ...prev,
-      keymaps: { ...prev.keymaps, [action]: keymap }
-    }));
+    const newConfig = {
+      ...config,
+      keymaps: { ...config.keymaps, [action]: keymap }
+    };
+    setConfig(newConfig);
+    updateURL(currentStep, newConfig);
   };
 
   const handleNext = () => {
-    if (currentStep === STEPS.length - 2) {
+    const newStep = Math.min(currentStep + 1, STEPS.length - 1);
+    if (newStep === STEPS.length - 1) {
       // Generate config on the last step
       const generated = generateInitLua(config);
       setGeneratedConfig(generated);
     }
-    setCurrentStep(prev => Math.min(prev + 1, STEPS.length - 1));
+    setCurrentStep(newStep);
+    updateURL(newStep, config);
   };
 
   const handleBack = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 0));
+    const newStep = Math.max(currentStep - 1, 0);
+    setCurrentStep(newStep);
+    updateURL(newStep, config);
   };
 
   const handleDownload = () => {
@@ -298,10 +376,25 @@ const Index = () => {
               <Button 
                 onClick={handleDownload}
                 size="lg"
-                className="bg-gradient-primary hover:opacity-90 text-background font-semibold px-8 py-3"
+                className="bg-gradient-primary hover:opacity-90 text-background font-semibold px-8 py-3 mr-4"
               >
                 <Download className="w-5 h-5 mr-2" />
                 Download init.lua
+              </Button>
+              <Button 
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.href);
+                  toast({
+                    title: "Link copied!",
+                    description: "Share this link to let others use your exact configuration.",
+                  });
+                }}
+                variant="outline"
+                size="lg" 
+                className="border-nvim-green/30 hover:bg-nvim-green/10 hover:border-nvim-green/50"
+              >
+                <Copy className="w-5 h-5 mr-2" />
+                Share Configuration
               </Button>
             </div>
 
