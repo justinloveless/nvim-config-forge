@@ -207,6 +207,7 @@ const Index = () => {
           <KeymapsTable
             leaderKey={config.leaderKey}
             keymaps={config.keymaps}
+            selectedPlugins={config.plugins}
             onLeaderKeyChange={handleLeaderKeyChange}
             onKeymapChange={handleKeymapChange}
           />
