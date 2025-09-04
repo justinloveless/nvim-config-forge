@@ -21,6 +21,7 @@ const KeyChordInput: React.FC<KeyChordInputProps> = ({
 }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordedKeys, setRecordedKeys] = useState<string[]>([]);
+  const [keySequence, setKeySequence] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const normalizeKey = (key: string, code: string): string => {
@@ -56,7 +57,14 @@ const KeyChordInput: React.FC<KeyChordInputProps> = ({
     return key.length === 1 ? key : key;
   };
 
-  const formatKeyChord = (keys: string[]): string => {
+  const formatKeySequence = (sequence: string[]): string => {
+    if (sequence.length === 0) return '';
+    
+    // Handle sequences like ['<leader>', 's'] or ['<C-s>']
+    return sequence.join('');
+  };
+
+  const formatSingleKey = (keys: string[]): string => {
     if (keys.length === 0) return '';
     
     const modifiers: string[] = [];
@@ -70,9 +78,12 @@ const KeyChordInput: React.FC<KeyChordInputProps> = ({
       else mainKey = key;
     });
 
-    // If the main key is the leader key, replace it with <leader>
-    if (mainKey === leaderKey && leaderKey.length === 1) {
-      mainKey = '<leader>';
+    // Check if this key is the leader key (handle both normalized and raw forms)
+    const isLeaderKey = mainKey === leaderKey || 
+                       (mainKey === 'Space' && leaderKey === ' ');
+
+    if (isLeaderKey) {
+      return '<leader>';
     }
 
     if (modifiers.length === 0) {
@@ -85,20 +96,29 @@ const KeyChordInput: React.FC<KeyChordInputProps> = ({
   const parseKeyChord = (chord: string): string[] => {
     if (!chord) return [];
     
-    // Handle <leader> placeholder
-    if (chord.includes('<leader>')) {
-      return ['<leader>'];
+    // Parse complex sequences like "<leader>s" or "<C-s>"
+    const tokens: string[] = [];
+    let i = 0;
+    
+    while (i < chord.length) {
+      if (chord[i] === '<') {
+        // Find the closing >
+        const closeIndex = chord.indexOf('>', i);
+        if (closeIndex !== -1) {
+          tokens.push(chord.substring(i, closeIndex + 1));
+          i = closeIndex + 1;
+        } else {
+          // Malformed, just add the character
+          tokens.push(chord[i]);
+          i++;
+        }
+      } else {
+        tokens.push(chord[i]);
+        i++;
+      }
     }
-
-    // Handle special key combinations like <C-s>, <A-f>, etc.
-    if (chord.startsWith('<') && chord.endsWith('>')) {
-      const inner = chord.slice(1, -1);
-      const parts = inner.split('-');
-      return parts;
-    }
-
-    // Handle simple keys
-    return [chord];
+    
+    return tokens;
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -120,9 +140,30 @@ const KeyChordInput: React.FC<KeyChordInputProps> = ({
     }
 
     if (keys.length > 0 && keys[keys.length - 1] !== '') {
-      setRecordedKeys(keys);
-      const formatted = formatKeyChord(keys);
-      onChange(formatted);
+      const formattedKey = formatSingleKey(keys);
+      
+      // If this is the first key and it's the leader key, continue recording
+      if (keySequence.length === 0 && formattedKey === '<leader>') {
+        setKeySequence([formattedKey]);
+        setRecordedKeys([]);
+        return; // Continue recording
+      }
+      
+      // If we already have keys in sequence, add this one and finish
+      if (keySequence.length > 0) {
+        const fullSequence = [...keySequence, formattedKey];
+        const final = formatKeySequence(fullSequence);
+        onChange(final);
+        setKeySequence([]);
+        setRecordedKeys([]);
+        setIsRecording(false);
+        return;
+      }
+      
+      // Single key (not leader-based)
+      onChange(formattedKey);
+      setRecordedKeys([]);
+      setKeySequence([]);
       setIsRecording(false);
     }
   };
@@ -130,30 +171,44 @@ const KeyChordInput: React.FC<KeyChordInputProps> = ({
   const handleStartRecording = () => {
     setIsRecording(true);
     setRecordedKeys([]);
+    setKeySequence([]);
     inputRef.current?.focus();
   };
 
   const handleClear = () => {
     onChange('');
     setRecordedKeys([]);
+    setKeySequence([]);
     setIsRecording(false);
   };
 
   const renderKeyChips = () => {
-    const keys = parseKeyChord(value);
-    if (keys.length === 0) return null;
+    // Show current sequence being recorded or the final value
+    const displaySequence = isRecording && keySequence.length > 0 ? keySequence : parseKeyChord(value);
+    if (displaySequence.length === 0) return null;
 
     return (
       <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
-        {keys.map((key, index) => (
+        {displaySequence.map((key, index) => (
           <Badge
             key={index}
             variant="secondary"
-            className="text-xs px-2 py-1 font-mono bg-muted/60 text-foreground border-0"
+            className={cn(
+              "text-xs px-2 py-1 font-mono bg-muted/60 text-foreground border-0",
+              isRecording && "ring-1 ring-primary/50"
+            )}
           >
-            {key === '<leader>' ? 'Leader' : key}
+            {key === '<leader>' ? 'Leader' : key.replace(/[<>]/g, '')}
           </Badge>
         ))}
+        {isRecording && keySequence.length > 0 && (
+          <Badge
+            variant="outline"
+            className="text-xs px-2 py-1 font-mono animate-pulse border-primary/50"
+          >
+            ...
+          </Badge>
+        )}
       </div>
     );
   };
@@ -162,13 +217,13 @@ const KeyChordInput: React.FC<KeyChordInputProps> = ({
     <div className="relative">
       <Input
         ref={inputRef}
-        value={isRecording ? 'Press keys...' : ''}
+        value={isRecording ? (keySequence.length > 0 ? 'Continue typing...' : 'Press keys...') : ''}
         onKeyDown={handleKeyDown}
         onFocus={handleStartRecording}
         placeholder={value ? '' : placeholder}
         className={cn(
           "font-mono cursor-pointer",
-          value && "pl-20", // Make space for chips
+          (value || (isRecording && keySequence.length > 0)) && "pl-20", // Make space for chips
           isRecording && "ring-2 ring-primary/50",
           className
         )}
