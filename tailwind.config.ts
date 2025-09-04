@@ -52,6 +52,14 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				nvim: {
+					green: 'hsl(var(--nvim-green))',
+					blue: 'hsl(var(--nvim-blue))',
+					purple: 'hsl(var(--nvim-purple))',
+					orange: 'hsl(var(--nvim-orange))',
+					red: 'hsl(var(--nvim-red))',
+					yellow: 'hsl(var(--nvim-yellow))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -62,6 +70,18 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				}
+			},
+			backgroundImage: {
+				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-card': 'var(--gradient-card)',
+				'gradient-selected': 'var(--gradient-selected)'
+			},
+			boxShadow: {
+				'card': 'var(--shadow-card)',
+				'selected': 'var(--shadow-selected)'
+			},
+			transitionTimingFunction: {
+				'smooth': 'var(--transition-smooth)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
