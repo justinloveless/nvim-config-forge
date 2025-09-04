@@ -4,7 +4,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ProgressIndicator } from '@/components/ProgressIndicator';
 import { WizardStep } from '@/components/WizardStep';
 import { generateInitLua, downloadFile } from '@/utils/configGenerator';
-import { Code, Palette, Plug, Settings, Download, FileText } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Code, Palette, Plug, Settings, Download, FileText, Copy, Check } from 'lucide-react';
 
 interface NvimConfig {
   languages: string[];
@@ -66,6 +67,8 @@ const Index = () => {
     settings: []
   });
   const [generatedConfig, setGeneratedConfig] = useState<string>('');
+  const [copied, setCopied] = useState(false);
+  const { toast } = useToast();
 
   const handleLanguageChange = (selectedIds: string[]) => {
     setConfig(prev => ({ ...prev, languages: selectedIds }));
@@ -98,6 +101,24 @@ const Index = () => {
 
   const handleDownload = () => {
     downloadFile(generatedConfig, 'init.lua');
+  };
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(generatedConfig);
+      setCopied(true);
+      toast({
+        title: "Copied to clipboard!",
+        description: "Your Neovim configuration has been copied to the clipboard.",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast({
+        title: "Failed to copy",
+        description: "Please select and copy the text manually.",
+        variant: "destructive",
+      });
+    }
   };
 
   const canProceed = () => {
@@ -170,9 +191,29 @@ const Index = () => {
             
             <Card className="bg-gradient-card border-border">
               <CardContent className="p-6">
-                <div className="mb-4 flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-nvim-green" />
-                  <span className="font-mono text-sm text-nvim-green">init.lua</span>
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-nvim-green" />
+                    <span className="font-mono text-sm text-nvim-green">init.lua</span>
+                  </div>
+                  <Button
+                    onClick={handleCopy}
+                    variant="outline"
+                    size="sm"
+                    className="h-8 px-3 border-nvim-green/30 hover:bg-nvim-green/10 hover:border-nvim-green/50"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-4 h-4 mr-1 text-nvim-green" />
+                        <span className="text-nvim-green">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4 mr-1" />
+                        Copy
+                      </>
+                    )}
+                  </Button>
                 </div>
                 <pre className="text-sm text-foreground overflow-x-auto max-h-96 whitespace-pre-wrap font-mono bg-background/50 p-4 rounded-md border">
                   {generatedConfig}
