@@ -84,6 +84,20 @@ const KEYMAP_SECTIONS: KeymapSection[] = [
       { id: 'toggle_wrap', name: 'Toggle Wrap', description: 'Toggle line wrapping' },
       { id: 'toggle_numbers', name: 'Toggle Numbers', description: 'Toggle line numbers' },
     ]
+  },
+  {
+    id: 'terminal',
+    title: 'Terminal Mode',
+    description: 'Terminal mode navigation and escape sequences',
+    icon: <Terminal className="w-5 h-5" />,
+    actions: [
+      { id: 'terminal_escape', name: 'Exit Terminal Mode', description: 'Return to normal mode from terminal' },
+      { id: 'terminal_escape_alt', name: 'Alt Exit Terminal', description: 'Alternative way to exit terminal mode' },
+      { id: 'terminal_nav_left', name: 'Navigate Left', description: 'Move to window on the left from terminal' },
+      { id: 'terminal_nav_right', name: 'Navigate Right', description: 'Move to window on the right from terminal' },
+      { id: 'terminal_nav_up', name: 'Navigate Up', description: 'Move to window above from terminal' },
+      { id: 'terminal_nav_down', name: 'Navigate Down', description: 'Move to window below from terminal' },
+    ]
   }
 ];
 
@@ -188,6 +202,14 @@ const DEFAULT_KEYMAPS: { [key: string]: string } = {
   // Display
   'toggle_wrap': '<leader>tw',
   'toggle_numbers': '<leader>tn',
+  
+  // Terminal Mode
+  'terminal_escape': '<C-\\><C-n>',
+  'terminal_escape_alt': '<C-w>N',
+  'terminal_nav_left': '<C-w>h',
+  'terminal_nav_right': '<C-w>l',
+  'terminal_nav_up': '<C-w>k',
+  'terminal_nav_down': '<C-w>j',
   
   // NvimTree
   'nvim_tree_toggle': '<leader>e',
