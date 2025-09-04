@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Search, RotateCcw, Info } from 'lucide-react';
+import { Search, RotateCcw, Info, RotateCcw as ResetIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { SETTINGS_CATEGORIES } from '@/data/settingsConfig';
@@ -96,6 +96,33 @@ export const ModernSettings: React.FC<ModernSettingsProps> = ({
     const newSettings = setNestedValue(settings, settingId, value);
     onSettingsChange(newSettings);
   };
+
+  const getSettingDefaultValue = (settingId: string): any => {
+    for (const category of SETTINGS_CATEGORIES) {
+      const setting = category.settings.find(s => s.id === settingId);
+      if (setting) {
+        return setting.defaultValue;
+      }
+    }
+    return undefined;
+  };
+
+  const isSettingChanged = (settingId: string): boolean => {
+    const currentValue = getNestedValue(settings, settingId);
+    const defaultValue = getSettingDefaultValue(settingId);
+    
+    // Handle array comparison for ignored patterns
+    if (Array.isArray(currentValue) && Array.isArray(defaultValue)) {
+      return JSON.stringify(currentValue.sort()) !== JSON.stringify(defaultValue.sort());
+    }
+    
+    return currentValue !== defaultValue;
+  };
+
+  const resetSingleSetting = (settingId: string) => {
+    const defaultValue = getSettingDefaultValue(settingId);
+    handleSettingChange(settingId, defaultValue);
+  };
   
   const resetToDefaults = () => {
     const defaultSettings: SettingsConfig = {
@@ -181,11 +208,22 @@ export const ModernSettings: React.FC<ModernSettingsProps> = ({
                 step={setting.step || 1}
                 className="w-full"
               />
-              <div className="flex justify-between text-sm text-muted-foreground">
+              <div className="flex justify-between items-center text-sm text-muted-foreground">
                 <span>{setting.min}{setting.unit && ` ${setting.unit}`}</span>
-                <span className="font-medium text-foreground">
-                  {currentValue || setting.defaultValue}{setting.unit && ` ${setting.unit}`}
-                </span>
+                <Input
+                  type="number"
+                  value={currentValue || setting.defaultValue}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    if (!isNaN(value) && value >= setting.min! && value <= setting.max!) {
+                      handleSettingChange(setting.id, value);
+                    }
+                  }}
+                  min={setting.min}
+                  max={setting.max}
+                  step={setting.step || 1}
+                  className="w-20 h-8 text-center text-sm font-medium text-foreground"
+                />
                 <span>{setting.max}{setting.unit && ` ${setting.unit}`}</span>
               </div>
             </div>
@@ -376,8 +414,21 @@ export const ModernSettings: React.FC<ModernSettingsProps> = ({
                               {setting.description}
                             </p>
                           </div>
-                          <div className="w-48 flex-shrink-0">
-                            {renderSettingControl(setting)}
+                          <div className="flex items-center gap-2">
+                            <div className="w-48 flex-shrink-0">
+                              {renderSettingControl(setting)}
+                            </div>
+                            {isSettingChanged(setting.id) && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => resetSingleSetting(setting.id)}
+                                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                                title={`Reset ${setting.title} to default`}
+                              >
+                                <ResetIcon className="w-4 h-4" />
+                              </Button>
+                            )}
                           </div>
                         </div>
                         
