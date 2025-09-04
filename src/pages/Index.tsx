@@ -95,6 +95,7 @@ const Index = () => {
   const [copied, setCopied] = useState(false);
   const [copiedCommands, setCopiedCommands] = useState<{ [key: string]: boolean }>({});
   const [showAdvancedFeatures, setShowAdvancedFeatures] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const { toast } = useToast();
 
   // URL state management
@@ -242,29 +243,44 @@ const Index = () => {
 
   const handleNext = () => {
     const newStep = Math.min(currentStep + 1, STEPS.length - 1);
-    if (newStep === STEPS.length - 1) {
-      // Generate config on the last step
-      const generated = generateInitLua(config);
-      setGeneratedConfig(generated);
-    }
-    setCurrentStep(newStep);
-    updateURL(newStep, config);
+    setIsTransitioning(true);
+    
+    setTimeout(() => {
+      if (newStep === STEPS.length - 1) {
+        // Generate config on the last step
+        const generated = generateInitLua(config);
+        setGeneratedConfig(generated);
+      }
+      setCurrentStep(newStep);
+      updateURL(newStep, config);
+      setIsTransitioning(false);
+    }, 150);
   };
 
   const handleBack = () => {
     const newStep = Math.max(currentStep - 1, 0);
-    setCurrentStep(newStep);
-    updateURL(newStep, config);
+    setIsTransitioning(true);
+    
+    setTimeout(() => {
+      setCurrentStep(newStep);
+      updateURL(newStep, config);
+      setIsTransitioning(false);
+    }, 150);
   };
 
   const handleStepClick = (stepIndex: number) => {
-    setCurrentStep(stepIndex);
-    if (stepIndex === STEPS.length - 1) {
-      // Generate config on the last step
-      const generated = generateInitLua(config);
-      setGeneratedConfig(generated);
-    }
-    updateURL(stepIndex, config);
+    setIsTransitioning(true);
+    
+    setTimeout(() => {
+      setCurrentStep(stepIndex);
+      if (stepIndex === STEPS.length - 1) {
+        // Generate config on the last step
+        const generated = generateInitLua(config);
+        setGeneratedConfig(generated);
+      }
+      updateURL(stepIndex, config);
+      setIsTransitioning(false);
+    }, 150);
   };
 
   const handleDownload = () => {
@@ -636,7 +652,7 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-card pb-24">
       <div className={cn(
         "container mx-auto px-4 max-w-6xl mb-20",
-        currentStep === 0 ? "py-6 md:py-12" : "pt-2 pb-6 md:pt-4 md:pb-12"
+        currentStep === 0 ? "py-6 md:py-12" : "pt-1 pb-6 md:pt-2 md:pb-12"
       )}>
         {/* Header - Only show on Quick Start step with animation */}
         <div 
@@ -664,7 +680,15 @@ const Index = () => {
         />
 
         <div className="min-h-[400px] md:min-h-[600px] flex flex-col justify-between">
-          <div className="flex-1 mb-8 md:mb-12 animate-fade-in">
+          <div 
+            key={currentStep}
+            className={cn(
+              "flex-1 mb-8 md:mb-12 transition-all duration-300 ease-out",
+              isTransitioning 
+                ? "opacity-0 translate-y-4" 
+                : "opacity-100 translate-y-0 animate-fade-in"
+            )}
+          >
             {renderCurrentStep()}
           </div>
 
