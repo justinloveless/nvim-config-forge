@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { ProgressIndicator } from '@/components/ProgressIndicator';
 import { WizardStep } from '@/components/WizardStep';
 import ModernKeymaps from '@/components/ModernKeymaps';
@@ -17,7 +19,7 @@ import { HealthCheckAnalyzer } from '@/components/HealthCheckAnalyzer';
 import { ConfigImporter } from '@/components/ConfigImporter';
 import { connectDirectory, writeToConnectedDirectory, hasDirectoryConnection } from '@/utils/dirHandleStore';
 import { detectNvimListener, saveToNvim } from '@/utils/nvimListener';
-import { Code, Palette, Plug, Settings, Download, FileText, Copy, Check, Zap, Wrench, FileUp, Folder, RefreshCw } from 'lucide-react';
+import { Code, Palette, Plug, Settings, Download, FileText, Copy, Check, Zap, Wrench, FileUp, Folder, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NvimConfig {
@@ -183,6 +185,31 @@ const Index = () => {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  // Check directory handle on mount
+  useEffect(() => {
+    const checkDirectoryHandle = async () => {
+      const hasConnection = await hasDirectoryConnection();
+      setHasDirectoryHandle(hasConnection);
+    };
+    checkDirectoryHandle();
+  }, []);
+
+  // Check Neovim listener connection when enabled
+  useEffect(() => {
+    if (config.nvimListenerEnabled) {
+      const checkConnection = async () => {
+        const connected = await detectNvimListener({
+          port: config.nvimListenerPort,
+          token: config.nvimListenerToken || undefined,
+        });
+        setNvimListenerConnected(connected);
+      };
+      checkConnection();
+    } else {
+      setNvimListenerConnected(false);
+    }
+  }, [config.nvimListenerEnabled, config.nvimListenerPort, config.nvimListenerToken]);
 
   const CodeBlock: React.FC<{ command: string; id: string }> = ({ command, id }) => {
     const handleCopy = async () => {
@@ -485,33 +512,172 @@ const Index = () => {
               </p>
             </div>
             
-            {/* Download Directory Setting */}
+            {/* Save Options */}
             <Card className="bg-gradient-card border-border">
               <CardHeader>
                 <CardTitle className="text-nvim-green flex items-center gap-2">
                   <Download className="w-5 h-5" />
-                  Download Settings
+                  Save Options
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Neovim Config Directory (optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={config.downloadDir || ''}
-                    onChange={(e) => {
-                      const newConfig = { ...config, downloadDir: e.target.value };
-                      setConfig(newConfig);
-                      updateURL(currentStep, newConfig);
-                    }}
-                    placeholder="e.g., ~/.config/nvim/ or %LOCALAPPDATA%\nvim\"
-                    className="w-full px-3 py-2 bg-background border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Set this to your nvim config directory. In modern browsers, you'll be prompted to save directly to this location. Otherwise, you'll need to manually move the downloaded file.
-                  </p>
+              <CardContent className="space-y-6">
+                {/* Neovim Listener Settings */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label htmlFor="nvim-listener" className="text-sm font-medium">
+                        Neovim Listener
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Save directly to Neovim when running the HTTP listener
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {config.nvimListenerEnabled && (
+                        nvimListenerConnected ? (
+                          <Wifi className="w-4 h-4 text-nvim-green" />
+                        ) : (
+                          <WifiOff className="w-4 h-4 text-destructive" />
+                        )
+                      )}
+                      <Switch
+                        id="nvim-listener"
+                        checked={config.nvimListenerEnabled || false}
+                        onCheckedChange={(enabled) => {
+                          const newConfig = { ...config, nvimListenerEnabled: enabled };
+                          setConfig(newConfig);
+                          updateURL(currentStep, newConfig);
+                        }}
+                      />
+                    </div>
+                  </div>
+                  
+                  {config.nvimListenerEnabled && (
+                    <div className="pl-4 border-l-2 border-border space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="nvim-port" className="text-sm font-medium">
+                            Port
+                          </Label>
+                          <Input
+                            id="nvim-port"
+                            type="number"
+                            value={config.nvimListenerPort || 45831}
+                            onChange={(e) => {
+                              const newConfig = { ...config, nvimListenerPort: parseInt(e.target.value) || 45831 };
+                              setConfig(newConfig);
+                              updateURL(currentStep, newConfig);
+                            }}
+                            placeholder="45831"
+                            min="1024"
+                            max="65535"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="nvim-token" className="text-sm font-medium">
+                            Auth Token (optional)
+                          </Label>
+                          <Input
+                            id="nvim-token"
+                            type="text"
+                            value={config.nvimListenerToken || ''}
+                            onChange={(e) => {
+                              const newConfig = { ...config, nvimListenerToken: e.target.value };
+                              setConfig(newConfig);
+                              updateURL(currentStep, newConfig);
+                            }}
+                            placeholder="Optional security token"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-3 bg-background/50 rounded-md">
+                        <div className="flex items-center gap-2">
+                          {nvimListenerConnected ? (
+                            <>
+                              <Wifi className="w-4 h-4 text-nvim-green" />
+                              <span className="text-sm font-medium text-nvim-green">Connected</span>
+                            </>
+                          ) : (
+                            <>
+                              <WifiOff className="w-4 h-4 text-destructive" />
+                              <span className="text-sm font-medium text-destructive">Disconnected</span>
+                            </>
+                          )}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            const connected = await detectNvimListener({
+                              port: config.nvimListenerPort,
+                              token: config.nvimListenerToken || undefined,
+                            });
+                            setNvimListenerConnected(connected);
+                            if (connected) {
+                              toast({
+                                title: "Connection successful!",
+                                description: "Neovim listener is ready to receive updates.",
+                              });
+                            } else {
+                              toast({
+                                title: "Connection failed",
+                                description: "Make sure Neovim is running with the HTTP listener enabled.",
+                                variant: "destructive",
+                              });
+                            }
+                          }}
+                        >
+                          <RefreshCw className="w-3 h-3 mr-1" />
+                          Test
+                        </Button>
+                      </div>
+                      
+                      {!nvimListenerConnected && (
+                        <div className="p-3 bg-muted/50 rounded-md">
+                          <p className="text-xs text-muted-foreground">
+                            <strong>Note:</strong> To use the Neovim listener, add the HTTP server code to your config and restart Neovim. 
+                            The listener code will be included in your generated config when this option is enabled.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Directory Settings */}
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="download-dir" className="text-sm font-medium">
+                      Neovim Config Directory (optional)
+                    </Label>
+                    <Input
+                      id="download-dir"
+                      type="text"
+                      value={config.downloadDir || ''}
+                      onChange={(e) => {
+                        const newConfig = { ...config, downloadDir: e.target.value };
+                        setConfig(newConfig);
+                        updateURL(currentStep, newConfig);
+                      }}
+                      placeholder="e.g., ~/.config/nvim/ or %LOCALAPPDATA%\nvim\"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Set this to your nvim config directory. In modern browsers, you'll be prompted to save directly to this location.
+                    </p>
+                  </div>
+                  
+                  {hasDirectoryHandle && (
+                    <div className="p-3 bg-nvim-green/10 border border-nvim-green/20 rounded-md">
+                      <div className="flex items-center gap-2">
+                        <Folder className="w-4 h-4 text-nvim-green" />
+                        <span className="text-sm font-medium text-nvim-green">Directory connected</span>
+                      </div>
+                      <p className="text-xs text-nvim-green/80 mt-1">
+                        Files will be saved directly to your connected directory.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
