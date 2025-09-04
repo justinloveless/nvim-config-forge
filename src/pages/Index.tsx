@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProgressIndicator } from '@/components/ProgressIndicator';
 import { WizardStep } from '@/components/WizardStep';
-import KeymapsTable from '@/components/KeymapsTable';
+import ModernKeymaps from '@/components/ModernKeymaps';
 import { ModernSettings } from '@/components/ModernSettings';
 import { generateInitLua, downloadFile } from '@/utils/configGenerator';
 import { getDefaultSettingsConfig } from '@/utils/settingsConfigGenerator';
@@ -378,7 +378,7 @@ const Index = () => {
         );
       case 5:
         return (
-          <KeymapsTable
+          <ModernKeymaps
             leaderKey={config.leaderKey}
             keymaps={config.keymaps}
             selectedPlugins={config.plugins}
