@@ -554,6 +554,7 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
     initContent += `\n-- Custom keymaps\n`;
     
     const keymapCommands = {
+      'command_mode': ':',
       'split_horizontal': '<cmd>split<CR>',
       'split_vertical': '<cmd>vsplit<CR>',
       'buffer_next': '<cmd>bnext<CR>',
@@ -594,6 +595,7 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
     };
     
     const keymapDescriptions = {
+      'command_mode': 'Enter command mode',
       'split_horizontal': 'Split window horizontally',
       'split_vertical': 'Split window vertically',
       'buffer_next': 'Next buffer',

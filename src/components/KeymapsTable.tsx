@@ -18,6 +18,7 @@ interface KeymapsTableProps {
 }
 
 const KEYMAP_ACTIONS = [
+  { id: 'command_mode', name: 'Command Mode', description: 'Enter command mode (map ; to :)' },
   { id: 'split_horizontal', name: 'Split Horizontal', description: 'Split window horizontally' },
   { id: 'split_vertical', name: 'Split Vertical', description: 'Split window vertically' },
   { id: 'buffer_next', name: 'Next Buffer', description: 'Switch to next buffer' },
@@ -111,7 +112,12 @@ const KeymapsTable: React.FC<KeymapsTableProps> = ({
         if (!keymaps[action.id]) {
           const defaultValue = getDefaultKeymap(action.id);
           if (defaultValue) {
-            onKeymapChange(action.id, `<leader>${defaultValue}`);
+            // Special case for command_mode - don't use leader prefix
+            if (action.id === 'command_mode') {
+              onKeymapChange(action.id, defaultValue);
+            } else {
+              onKeymapChange(action.id, `<leader>${defaultValue}`);
+            }
           }
         }
       });
@@ -192,7 +198,7 @@ const KeymapsTable: React.FC<KeymapsTableProps> = ({
                   <TableCell className="text-muted-foreground">{action.description}</TableCell>
                   <TableCell>
                     <Input
-                      value={keymaps[action.id] || `<leader>${getDefaultKeymap(action.id)}`}
+                      value={keymaps[action.id] || (action.id === 'command_mode' ? getDefaultKeymap(action.id) : `<leader>${getDefaultKeymap(action.id)}`)}
                       onChange={(e) => onKeymapChange(action.id, e.target.value)}
                       className="font-mono bg-background/50 border-border focus:border-nvim-green/50 max-w-32"
                     />
@@ -259,6 +265,7 @@ const KeymapsTable: React.FC<KeymapsTableProps> = ({
 
 const getDefaultKeymap = (actionId: string): string => {
   const defaults: { [key: string]: string } = {
+    'command_mode': ';',
     'split_horizontal': 's',
     'split_vertical': 'v',
     'buffer_next': 'bn',
