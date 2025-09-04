@@ -15,6 +15,7 @@ import { InstallerScripts } from '@/components/InstallerScripts';
 import { HealthCheckAnalyzer } from '@/components/HealthCheckAnalyzer';
 import { ConfigImporter } from '@/components/ConfigImporter';
 import { Code, Palette, Plug, Settings, Download, FileText, Copy, Check, Zap, Wrench, FileUp } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface NvimConfig {
   languages: string[];
@@ -634,18 +635,23 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-card pb-24">
       <div className="container mx-auto px-4 py-6 md:py-12 max-w-6xl mb-20">
-        {/* Header - Only show on Quick Start step */}
-        {currentStep === 0 && (
-          <div className="text-center mb-8 md:mb-16">
-            <h1 className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 bg-gradient-primary bg-clip-text text-transparent">
-              Neovim Config Generator
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
-              Create a personalized Neovim configuration that works perfectly for your development workflow.
-              No complex setup required - just select your preferences and get a ready-to-use init.lua file.
-            </p>
-          </div>
-        )}
+        {/* Header - Only show on Quick Start step with animation */}
+        <div 
+          className={cn(
+            "text-center transition-all duration-500 ease-out",
+            currentStep === 0 
+              ? "mb-8 md:mb-16 opacity-100 translate-y-0" 
+              : "mb-0 opacity-0 -translate-y-8 pointer-events-none"
+          )}
+        >
+          <h1 className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 bg-gradient-primary bg-clip-text text-transparent">
+            Neovim Config Generator
+          </h1>
+          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
+            Create a personalized Neovim configuration that works perfectly for your development workflow.
+            No complex setup required - just select your preferences and get a ready-to-use init.lua file.
+          </p>
+        </div>
 
         <ProgressIndicator
           currentStep={currentStep}
@@ -655,7 +661,7 @@ const Index = () => {
         />
 
         <div className="min-h-[400px] md:min-h-[600px] flex flex-col justify-between">
-          <div className="flex-1 mb-8 md:mb-12">
+          <div className="flex-1 mb-8 md:mb-12 animate-fade-in">
             {renderCurrentStep()}
           </div>
 
@@ -663,12 +669,12 @@ const Index = () => {
 
         {/* Advanced Features Toggle - Only show on Generate page */}
         {currentStep === STEPS.length - 1 && (
-          <div className="mt-8 md:mt-16 pt-8 border-t border-border">
+          <div className="mt-8 md:mt-16 pt-8 border-t border-border animate-fade-in">
             <div className="text-center">
               <Button
                 onClick={() => setShowAdvancedFeatures(!showAdvancedFeatures)}
                 variant="ghost"
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground transition-all duration-200 hover-scale"
               >
                 <Wrench className="w-4 h-4 mr-2" />
                 {showAdvancedFeatures ? 'Hide' : 'Show'} Advanced Features
@@ -676,31 +682,31 @@ const Index = () => {
             </div>
             
             {showAdvancedFeatures && (
-              <Tabs defaultValue="installer" className="mt-8">
+              <Tabs defaultValue="installer" className="mt-8 animate-scale-in">
                 <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="installer">
+                  <TabsTrigger value="installer" className="transition-all duration-200 hover-scale">
                     <Zap className="w-4 h-4 mr-2" />
                     Quick Install
                   </TabsTrigger>
-                  <TabsTrigger value="health">
+                  <TabsTrigger value="health" className="transition-all duration-200 hover-scale">
                     <Settings className="w-4 h-4 mr-2" />
                     Health Check
                   </TabsTrigger>
-                  <TabsTrigger value="import">
+                  <TabsTrigger value="import" className="transition-all duration-200 hover-scale">
                     <FileUp className="w-4 h-4 mr-2" />
                     Import Config
                   </TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="installer" className="mt-6">
+                <TabsContent value="installer" className="mt-6 animate-fade-in">
                   <InstallerScripts config={config} generatedConfig={generatedConfig} />
                 </TabsContent>
                 
-                <TabsContent value="health" className="mt-6">
+                <TabsContent value="health" className="mt-6 animate-fade-in">
                   <HealthCheckAnalyzer />
                 </TabsContent>
                 
-                <TabsContent value="import" className="mt-6">
+                <TabsContent value="import" className="mt-6 animate-fade-in">
                   <ConfigImporter onImportConfig={handleImportConfig} />
                 </TabsContent>
               </Tabs>
@@ -710,14 +716,14 @@ const Index = () => {
       </div>
 
       {/* Floating navigation for all screen sizes */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border p-4 z-50 shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border p-4 z-50 shadow-lg animate-slide-in-bottom">
         <div className="flex justify-between items-center max-w-2xl mx-auto gap-3">
           <Button
             onClick={handleBack}
             disabled={currentStep === 0}
             variant="outline"
             size="lg"
-            className="flex-1 md:px-8"
+            className="flex-1 md:px-8 transition-all duration-200 hover-scale"
           >
             Back
           </Button>
@@ -727,7 +733,7 @@ const Index = () => {
               onClick={handleNext}
               disabled={!canProceed()}
               size="lg"
-              className="bg-gradient-primary hover:opacity-90 text-background font-semibold flex-1 md:px-8"
+              className="bg-gradient-primary hover:opacity-90 text-background font-semibold flex-1 md:px-8 transition-all duration-200 hover-scale"
             >
               {currentStep === STEPS.length - 2 ? 'Generate Config' : currentStep === 0 ? 'Next' : 'Next (or Skip)'}
             </Button>
@@ -750,7 +756,7 @@ const Index = () => {
               }}
               variant="outline"
               size="lg"
-              className="flex-1 md:px-8"
+              className="flex-1 md:px-8 transition-all duration-200 hover-scale"
             >
               Start Over
             </Button>
