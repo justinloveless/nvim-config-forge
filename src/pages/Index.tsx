@@ -52,6 +52,14 @@ const PLUGIN_OPTIONS = [
   { id: 'treesitter', title: 'TreeSitter', description: 'Advanced syntax highlighting and code parsing', icon: <Plug className="w-5 h-5" /> },
   { id: 'telescope', title: 'Telescope', description: 'Fuzzy finder for files, buffers, and more', icon: <Plug className="w-5 h-5" /> },
   { id: 'nvim-tree', title: 'NvimTree', description: 'File explorer sidebar', icon: <Plug className="w-5 h-5" /> },
+  { id: 'dashboard', title: 'Dashboard', description: 'Fancy start screen with quick access options', icon: <Plug className="w-5 h-5" /> },
+  { id: 'indent-blankline', title: 'Indent Blankline', description: 'Visual indentation guides', icon: <Plug className="w-5 h-5" /> },
+  { id: 'lualine', title: 'Lualine', description: 'Fast and customizable statusline', icon: <Plug className="w-5 h-5" /> },
+  { id: 'nvim-surround', title: 'nvim-surround', description: 'Surround text with brackets, quotes, etc.', icon: <Plug className="w-5 h-5" /> },
+  { id: 'gitsigns', title: 'GitSigns', description: 'Git integration with line-by-line changes', icon: <Plug className="w-5 h-5" /> },
+  { id: 'which-key', title: 'Which Key', description: 'Display available keybindings in popup', icon: <Plug className="w-5 h-5" /> },
+  { id: 'nvim-dap', title: 'nvim-dap', description: 'Debug adapter protocol client', icon: <Plug className="w-5 h-5" /> },
+  { id: 'nvim-notify', title: 'nvim-notify', description: 'Enhanced notification system', icon: <Plug className="w-5 h-5" /> },
 ];
 
 const SETTINGS_OPTIONS = [

@@ -326,7 +326,177 @@ require("lazy").setup({
     dependencies = { "nvim-tree/nvim-web-devicons" },
     config = function()
       require("nvim-tree").setup()
-      vim.keymap.set('n', '<leader>e', '<cmd>NvimTreeToggle<CR>')
+      vim.keymap.set('n', '<leader>e', '<cmd>NvimTreeToggle<CR>', { desc = 'Toggle file explorer' })
+      vim.keymap.set('n', '<leader>ef', '<cmd>NvimTreeFocus<CR>', { desc = 'Focus file explorer' })
+      vim.keymap.set('n', '<leader>ec', '<cmd>NvimTreeCollapse<CR>', { desc = 'Collapse file explorer' })
+    end,
+  },
+`;
+    }
+
+    if (plugins.includes('dashboard')) {
+      initContent += `  -- Dashboard start screen
+  {
+    "nvimdev/dashboard-nvim",
+    event = "VimEnter",
+    config = function()
+      require('dashboard').setup({
+        theme = 'doom',
+        config = {
+          header = {
+            '',
+            '███╗   ██╗███████╗ ██████╗ ██╗   ██╗██╗███╗   ███╗',
+            '████╗  ██║██╔════╝██╔═══██╗██║   ██║██║████╗ ████║',
+            '██╔██╗ ██║█████╗  ██║   ██║██║   ██║██║██╔████╔██║',
+            '██║╚██╗██║██╔══╝  ██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║',
+            '██║ ╚████║███████╗╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║',
+            '╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝',
+            '',
+          },
+          center = {
+            { icon = ' ', desc = 'Find File          ', key = 'f', keymap = 'SPC f f', action = 'lua require("telescope.builtin").find_files()' },
+            { icon = ' ', desc = 'Recent Files       ', key = 'r', keymap = 'SPC f r', action = 'lua require("telescope.builtin").oldfiles()' },
+            { icon = ' ', desc = 'Find Text          ', key = 'g', keymap = 'SPC f g', action = 'lua require("telescope.builtin").live_grep()' },
+            { icon = ' ', desc = 'New File           ', key = 'n', keymap = 'SPC f n', action = 'enew' },
+            { icon = ' ', desc = 'Quit               ', key = 'q', keymap = 'SPC q q', action = 'qa' },
+          },
+        },
+      })
+    end,
+  },
+`;
+    }
+
+    if (plugins.includes('indent-blankline')) {
+      initContent += `  -- Indentation guides
+  {
+    "lukas-reineke/indent-blankline.nvim",
+    main = "ibl",
+    config = function()
+      require("ibl").setup({
+        indent = { char = "│" },
+        scope = { enabled = false },
+      })
+    end,
+  },
+`;
+    }
+
+    if (plugins.includes('lualine')) {
+      initContent += `  -- Statusline
+  {
+    "nvim-lualine/lualine.nvim",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    config = function()
+      require('lualine').setup({
+        options = {
+          theme = 'auto',
+          component_separators = { left = '', right = ''},
+          section_separators = { left = '', right = ''},
+        },
+      })
+    end,
+  },
+`;
+    }
+
+    if (plugins.includes('nvim-surround')) {
+      initContent += `  -- Surround text objects
+  {
+    "kylechui/nvim-surround",
+    version = "*",
+    event = "VeryLazy",
+    config = function()
+      require("nvim-surround").setup({})
+    end,
+  },
+`;
+    }
+
+    if (plugins.includes('gitsigns')) {
+      initContent += `  -- Git integration
+  {
+    "lewis6991/gitsigns.nvim",
+    config = function()
+      require('gitsigns').setup({
+        signs = {
+          add = { text = '+' },
+          change = { text = '~' },
+          delete = { text = '_' },
+          topdelete = { text = '‾' },
+          changedelete = { text = '~' },
+        },
+      })
+      vim.keymap.set('n', '<leader>gb', '<cmd>Gitsigns blame_line<CR>', { desc = 'Git blame line' })
+      vim.keymap.set('n', '<leader>gd', '<cmd>Gitsigns diffthis<CR>', { desc = 'Git diff' })
+      vim.keymap.set('n', '<leader>gh', '<cmd>Gitsigns preview_hunk<CR>', { desc = 'Preview hunk' })
+      vim.keymap.set('n', '<leader>gr', '<cmd>Gitsigns reset_hunk<CR>', { desc = 'Reset hunk' })
+      vim.keymap.set('n', '<leader>gs', '<cmd>Gitsigns stage_hunk<CR>', { desc = 'Stage hunk' })
+    end,
+  },
+`;
+    }
+
+    if (plugins.includes('which-key')) {
+      initContent += `  -- Keybinding helper
+  {
+    "folke/which-key.nvim",
+    event = "VeryLazy",
+    config = function()
+      vim.o.timeout = true
+      vim.o.timeoutlen = 300
+      require("which-key").setup({})
+    end,
+  },
+`;
+    }
+
+    if (plugins.includes('nvim-dap')) {
+      initContent += `  -- Debug Adapter Protocol
+  {
+    "mfussenegger/nvim-dap",
+    dependencies = {
+      "rcarriga/nvim-dap-ui",
+      "nvim-neotest/nvim-nio",
+    },
+    config = function()
+      local dap = require("dap")
+      local dapui = require("dapui")
+      
+      dapui.setup()
+      
+      dap.listeners.after.event_initialized["dapui_config"] = function()
+        dapui.open()
+      end
+      dap.listeners.before.event_terminated["dapui_config"] = function()
+        dapui.close()
+      end
+      dap.listeners.before.event_exited["dapui_config"] = function()
+        dapui.close()
+      end
+      
+      vim.keymap.set('n', '<F5>', function() dap.continue() end, { desc = 'Debug: Continue' })
+      vim.keymap.set('n', '<F10>', function() dap.step_over() end, { desc = 'Debug: Step over' })
+      vim.keymap.set('n', '<F11>', function() dap.step_into() end, { desc = 'Debug: Step into' })
+      vim.keymap.set('n', '<F12>', function() dap.step_out() end, { desc = 'Debug: Step out' })
+      vim.keymap.set('n', '<leader>db', function() dap.toggle_breakpoint() end, { desc = 'Debug: Toggle breakpoint' })
+      vim.keymap.set('n', '<leader>dr', function() dap.repl.open() end, { desc = 'Debug: Open REPL' })
+      vim.keymap.set('n', '<leader>du', function() dapui.toggle() end, { desc = 'Debug: Toggle UI' })
+    end,
+  },
+`;
+    }
+
+    if (plugins.includes('nvim-notify')) {
+      initContent += `  -- Enhanced notifications
+  {
+    "rcarriga/nvim-notify",
+    config = function()
+      vim.notify = require("notify")
+      require("notify").setup({
+        stages = "fade_in_slide_out",
+        timeout = 3000,
+      })
     end,
   },
 `;
