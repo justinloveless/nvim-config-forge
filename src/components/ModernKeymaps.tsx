@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Search, Keyboard, RotateCcw, FolderTree, Search as SearchIcon, Terminal, GitBranch, Wrench } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Search, Keyboard, RotateCcw, FolderTree, Search as SearchIcon, Terminal, GitBranch, Wrench, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import KeyChordInput from './KeyChordInput';
 
@@ -251,6 +252,47 @@ const ModernKeymaps: React.FC<ModernKeymapsProps> = ({
     return sections;
   }, [selectedPlugins]);
 
+  // Detect conflicting keymaps
+  const conflictingKeymaps = useMemo(() => {
+    const conflicts: { [keymap: string]: string[] } = {};
+    const allKeymaps: { [actionId: string]: string } = {};
+
+    // Collect all keymaps
+    visibleSections.forEach(section => {
+      section.actions.forEach(action => {
+        const keymap = keymaps[action.id] || DEFAULT_KEYMAPS[action.id] || '';
+        if (keymap.trim()) {
+          allKeymaps[action.id] = keymap;
+        }
+      });
+    });
+
+    // Find conflicts
+    Object.entries(allKeymaps).forEach(([actionId1, keymap1]) => {
+      Object.entries(allKeymaps).forEach(([actionId2, keymap2]) => {
+        if (actionId1 !== actionId2 && keymap1 === keymap2) {
+          if (!conflicts[keymap1]) {
+            conflicts[keymap1] = [];
+          }
+          if (!conflicts[keymap1].includes(actionId1)) {
+            conflicts[keymap1].push(actionId1);
+          }
+          if (!conflicts[keymap1].includes(actionId2)) {
+            conflicts[keymap1].push(actionId2);
+          }
+        }
+      });
+    });
+
+    return conflicts;
+  }, [keymaps, visibleSections]);
+
+  // Check if an action has conflicting keymaps
+  const hasConflict = (actionId: string): boolean => {
+    const keymap = keymaps[actionId] || DEFAULT_KEYMAPS[actionId] || '';
+    return conflictingKeymaps[keymap] && conflictingKeymaps[keymap].length > 1;
+  };
+
   // Filter actions based on search query
   const getVisibleActions = (actions: KeymapAction[]) => {
     if (!searchQuery.trim()) return actions;
@@ -359,6 +401,42 @@ const ModernKeymaps: React.FC<ModernKeymapsProps> = ({
         </CardContent>
       </Card>
 
+      {/* Conflict Warnings */}
+      {Object.keys(conflictingKeymaps).length > 0 && (
+        <Alert className="max-w-7xl mx-auto border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
+          <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <AlertDescription className="text-amber-700 dark:text-amber-300">
+            <div className="space-y-2">
+              <div className="font-medium">Key binding conflicts detected</div>
+              <div className="text-sm space-y-1">
+                {Object.entries(conflictingKeymaps).map(([keymap, actions]) => (
+                  <div key={keymap}>
+                    <span className="font-mono bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.5 rounded text-xs">
+                      {keymap}
+                    </span>
+                    {' is used by: '}
+                    {actions.map((actionId, index) => {
+                      const action = [...KEYMAP_SECTIONS, ...Object.values(PLUGIN_SECTIONS)]
+                        .flatMap(s => s.actions)
+                        .find(a => a.id === actionId);
+                      return (
+                        <span key={actionId}>
+                          {action?.name || actionId}
+                          {index < actions.length - 1 ? ', ' : ''}
+                        </span>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+              <div className="text-xs opacity-80">
+                These conflicts won't prevent you from continuing, but may cause unexpected behavior.
+              </div>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Main Keymaps Interface */}
       <div className="grid grid-cols-12 gap-6 max-w-7xl mx-auto">
         {/* Left Sidebar - Categories */}
@@ -433,13 +511,19 @@ const ModernKeymaps: React.FC<ModernKeymapsProps> = ({
               <div className="space-y-8">
                 {getVisibleActions(currentSection.actions).map((action, index) => (
                   <div key={action.id}>
-                    <div className="flex items-start gap-6">
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Label className="font-medium text-base">
-                            {action.name}
-                          </Label>
-                        </div>
+                      <div className="flex items-start gap-6">
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Label className="font-medium text-base">
+                              {action.name}
+                            </Label>
+                            {hasConflict(action.id) && (
+                              <Badge variant="destructive" className="text-xs flex items-center gap-1">
+                                <AlertTriangle className="w-3 h-3" />
+                                Conflict
+                              </Badge>
+                            )}
+                          </div>
                         <p className="text-sm text-muted-foreground leading-relaxed">
                           {action.description}
                         </p>
@@ -451,6 +535,9 @@ const ModernKeymaps: React.FC<ModernKeymapsProps> = ({
                             onChange={(value) => onKeymapChange(action.id, value)}
                             leaderKey={leaderKey}
                             placeholder="No binding"
+                            className={cn(
+                              hasConflict(action.id) && "border-amber-500 dark:border-amber-600 ring-1 ring-amber-500/20"
+                            )}
                           />
                         </div>
                         <div className="w-8 flex justify-center flex-shrink-0">
