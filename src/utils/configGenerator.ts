@@ -128,8 +128,8 @@ require("lazy").setup({
       // Add only LSP servers based on selected languages
       const lspServers = languages.map(lang => {
         const serverMap: { [key: string]: string } = {
-          'typescript': 'tsserver',
-          'javascript': 'tsserver',
+          'typescript': 'ts_ls',
+          'javascript': 'ts_ls',
           'python': 'pyright',
           'rust': 'rust_analyzer',
           'go': 'gopls',

@@ -193,7 +193,7 @@ const KeymapsTable: React.FC<KeymapsTableProps> = ({
       </Card>
 
       {/* Plugin-specific keymaps */}
-      {selectedPlugins.map(pluginId => {
+      {selectedPlugins?.map(pluginId => {
         const pluginConfig = PLUGIN_KEYMAPS[pluginId as keyof typeof PLUGIN_KEYMAPS];
         if (!pluginConfig) return null;
         
