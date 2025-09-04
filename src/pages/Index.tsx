@@ -634,15 +634,18 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-card pb-24">
       <div className="container mx-auto px-4 py-6 md:py-12 max-w-6xl mb-20">
-        <div className="text-center mb-8 md:mb-16">
-          <h1 className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 bg-gradient-primary bg-clip-text text-transparent">
-            Neovim Config Generator
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
-            Create a personalized Neovim configuration that works perfectly for your development workflow.
-            No complex setup required - just select your preferences and get a ready-to-use init.lua file.
-          </p>
-        </div>
+        {/* Header - Only show on Quick Start step */}
+        {currentStep === 0 && (
+          <div className="text-center mb-8 md:mb-16">
+            <h1 className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 bg-gradient-primary bg-clip-text text-transparent">
+              Neovim Config Generator
+            </h1>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
+              Create a personalized Neovim configuration that works perfectly for your development workflow.
+              No complex setup required - just select your preferences and get a ready-to-use init.lua file.
+            </p>
+          </div>
+        )}
 
         <ProgressIndicator
           currentStep={currentStep}

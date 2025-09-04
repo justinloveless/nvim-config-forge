@@ -76,15 +76,6 @@ export const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
           />
         </div>
       </div>
-      
-      <div className="text-center mt-3">
-        <p className="text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">{steps[currentStep]}</span>
-          <span className="ml-2">
-            ({currentStep + 1} of {totalSteps})
-          </span>
-        </p>
-      </div>
     </div>
   );
 };
