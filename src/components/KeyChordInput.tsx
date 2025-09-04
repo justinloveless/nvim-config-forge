@@ -134,7 +134,18 @@ const KeyChordInput: React.FC<KeyChordInputProps> = ({
     if (e.shiftKey && e.key !== 'Shift') keys.push('Shift');
     if (e.metaKey) keys.push('Meta');
     
-    const normalizedKey = normalizeKey(e.key, e.code);
+    // When modifiers are pressed, use e.code to get the physical key
+    // as e.key might be a control character
+    let keyToUse = e.key;
+    if ((e.ctrlKey || e.altKey || e.metaKey) && e.code.startsWith('Key')) {
+      // Extract letter from KeyX format (e.g., 'KeyX' -> 'X')
+      keyToUse = e.code.slice(3);
+    } else if ((e.ctrlKey || e.altKey || e.metaKey) && e.code.startsWith('Digit')) {
+      // Extract digit from DigitX format (e.g., 'Digit1' -> '1')
+      keyToUse = e.code.slice(5);
+    }
+    
+    const normalizedKey = normalizeKey(keyToUse, e.code);
     if (!['Control', 'Alt', 'Shift', 'Meta'].includes(normalizedKey)) {
       keys.push(normalizedKey);
     }
