@@ -54,21 +54,16 @@ export const WizardStep: React.FC<WizardStepProps> = ({
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {options.map((option) => (
-          <div key={option.id} className="space-y-4">
-            <SelectionCard
-              id={option.id}
-              title={option.title}
-              description={option.description}
-              icon={option.icon}
-              selected={selectedOptions.includes(option.id)}
-              onSelect={handleSelect}
-            />
-            {showThemePreviews && (
-              <div className="flex justify-center">
-                <ThemePreview themeId={option.id} />
-              </div>
-            )}
-          </div>
+          <SelectionCard
+            key={option.id}
+            id={option.id}
+            title={option.title}
+            description={option.description}
+            icon={option.icon}
+            selected={selectedOptions.includes(option.id)}
+            onSelect={handleSelect}
+            themePreview={showThemePreviews ? <ThemePreview themeId={option.id} /> : undefined}
+          />
         ))}
       </div>
       

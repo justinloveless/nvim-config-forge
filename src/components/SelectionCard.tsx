@@ -9,6 +9,7 @@ interface SelectionCardProps {
   selected?: boolean;
   onSelect: (id: string) => void;
   className?: string;
+  themePreview?: React.ReactNode;
 }
 
 export const SelectionCard: React.FC<SelectionCardProps> = ({
@@ -18,7 +19,8 @@ export const SelectionCard: React.FC<SelectionCardProps> = ({
   icon,
   selected = false,
   onSelect,
-  className
+  className,
+  themePreview
 }) => {
   return (
     <div
@@ -56,6 +58,12 @@ export const SelectionCard: React.FC<SelectionCardProps> = ({
           </p>
         </div>
       </div>
+      
+      {themePreview && (
+        <div className="mt-4 flex justify-center">
+          {themePreview}
+        </div>
+      )}
       
       {selected && (
         <div className="absolute top-3 right-3">
