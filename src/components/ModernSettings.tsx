@@ -29,24 +29,6 @@ export const ModernSettings: React.FC<ModernSettingsProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('editor');
   
-  // Filter categories based on selected plugins
-  const visibleCategories = useMemo(() => {
-    return SETTINGS_CATEGORIES.filter(category => {
-      // Always show core categories
-      if (['editor', 'behavior', 'ui', 'performance'].includes(category.id)) {
-        return true;
-      }
-      
-      // Check if category has any visible settings
-      const hasVisibleSettings = category.settings.some(setting => 
-        !setting.requiresPlugins || 
-        setting.requiresPlugins.some(plugin => selectedPlugins.includes(plugin))
-      );
-      
-      return hasVisibleSettings;
-    });
-  }, [selectedPlugins]);
-  
   // Filter settings within each category
   const getVisibleSettings = (categorySettings: SettingDefinition[]) => {
     return categorySettings.filter(setting => {
@@ -76,6 +58,15 @@ export const ModernSettings: React.FC<ModernSettingsProps> = ({
   const getNestedValue = (obj: any, path: string): any => {
     return path.split('.').reduce((current, key) => current?.[key], obj);
   };
+   
+  // Filter categories based on selected plugins and search results
+  const visibleCategories = useMemo(() => {
+    return SETTINGS_CATEGORIES.filter(category => {
+      // Check if category has any visible settings after all filters
+      const visibleSettings = getVisibleSettings(category.settings);
+      return visibleSettings.length > 0;
+    });
+  }, [selectedPlugins, searchQuery, settings]);
   
   const setNestedValue = (obj: any, path: string, value: any): any => {
     const keys = path.split('.');
@@ -341,6 +332,8 @@ export const ModernSettings: React.FC<ModernSettingsProps> = ({
               <CardContent className="space-y-1">
                 {visibleCategories.map((category) => {
                   const visibleSettingsCount = getVisibleSettings(category.settings).length;
+                  
+                  if (!visibleSettingsCount && searchQuery.trim()) return null;
                   
                   return (
                     <button
