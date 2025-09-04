@@ -137,6 +137,29 @@ const PRESET_STACKS = [
         split_horizontal: '<leader>s'
       }
     }
+  },
+  {
+    id: 'aspnet',
+    title: 'ASP.NET Development',
+    description: 'Optimized for ASP.NET web development with C# and TypeScript',
+    icon: <Globe className="w-6 h-6" />,
+    color: 'text-violet-500',
+    config: {
+      languages: ['typescript', 'javascript', 'csharp', 'lua'],
+      theme: 'onedark',
+      plugins: ['treesitter', 'telescope', 'nvim-tree', 'tabbufline', 'which-key', 'nvim-dap'],
+      settings: ['line_numbers', 'auto_save'],
+      leaderKey: ' ',
+      keymaps: {
+        save_file: '<leader>w',
+        terminal_toggle: '<leader>t',
+        buffer_close: '<leader>bd',
+        buffer_next: '<leader>bn',
+        buffer_prev: '<leader>bp',
+        split_vertical: '<leader>v',
+        split_horizontal: '<leader>s'
+      }
+    }
   }
 ];
 
