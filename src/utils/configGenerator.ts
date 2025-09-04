@@ -710,3 +710,31 @@ export const downloadFile = (content: string, filename: string) => {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 };
+
+export const downloadToDirectory = async (content: string, filename: string, targetDir?: string) => {
+  // Try to use File System Access API for modern browsers
+  if ('showSaveFilePicker' in window && targetDir) {
+    try {
+      const fileHandle = await (window as any).showSaveFilePicker({
+        suggestedName: filename,
+        types: [{
+          description: 'Lua files',
+          accept: { 'text/plain': ['.lua'] }
+        }]
+      });
+      
+      const writable = await fileHandle.createWritable();
+      await writable.write(content);
+      await writable.close();
+      
+      return { success: true, method: 'picker' };
+    } catch (err) {
+      // User cancelled or API not supported, fall back to regular download
+      console.log('File picker cancelled or not supported, falling back to download');
+    }
+  }
+  
+  // Fallback to regular download
+  downloadFile(content, filename);
+  return { success: true, method: 'download', targetDir };
+};

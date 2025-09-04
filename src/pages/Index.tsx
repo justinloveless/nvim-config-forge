@@ -6,7 +6,7 @@ import { ProgressIndicator } from '@/components/ProgressIndicator';
 import { WizardStep } from '@/components/WizardStep';
 import ModernKeymaps from '@/components/ModernKeymaps';
 import { ModernSettings } from '@/components/ModernSettings';
-import { generateInitLua, downloadFile } from '@/utils/configGenerator';
+import { generateInitLua, downloadFile, downloadToDirectory } from '@/utils/configGenerator';
 import { getDefaultSettingsConfig } from '@/utils/settingsConfigGenerator';
 import { SettingsConfig } from '@/types/settings';
 import { useToast } from '@/hooks/use-toast';
@@ -288,8 +288,26 @@ const Index = () => {
     }, 150);
   };
 
-  const handleDownload = () => {
-    downloadFile(generatedConfig, 'init.lua');
+  const handleDownload = async () => {
+    const result = await downloadToDirectory(generatedConfig, 'init.lua', config.downloadDir);
+    
+    if (result.method === 'picker') {
+      toast({
+        title: "File saved successfully!",
+        description: "Your init.lua has been saved to the selected location.",
+      });
+    } else if (result.targetDir) {
+      toast({
+        title: "Downloaded to Downloads folder",
+        description: `Please move the file from Downloads to: ${result.targetDir}`,
+        duration: 8000,
+      });
+    } else {
+      toast({
+        title: "Downloaded!",
+        description: "Your init.lua file has been downloaded.",
+      });
+    }
   };
 
   const handleCopy = async () => {
@@ -446,7 +464,7 @@ const Index = () => {
                     className="w-full px-3 py-2 bg-background border border-border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Set this to your nvim config directory to enable the <code className="bg-background/50 px-1 rounded">open_config_web</code> keymap (<code className="bg-background/50 px-1 rounded">&lt;C-,&gt;</code> by default) in your generated config.
+                    Set this to your nvim config directory. In modern browsers, you'll be prompted to save directly to this location. Otherwise, you'll need to manually move the downloaded file.
                   </p>
                 </div>
               </CardContent>
