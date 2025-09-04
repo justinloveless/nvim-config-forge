@@ -681,43 +681,6 @@ const Index = () => {
             {renderCurrentStep()}
           </div>
 
-          {/* Desktop navigation */}
-          <div className="hidden md:flex justify-between">
-            <Button
-              onClick={handleBack}
-              disabled={currentStep === 0}
-              variant="outline"
-              size="lg"
-              className="px-8"
-            >
-              Back
-            </Button>
-            
-            {currentStep < STEPS.length - 1 ? (
-              <Button
-                onClick={handleNext}
-                disabled={!canProceed()}
-                size="lg"
-                className="bg-gradient-primary hover:opacity-90 text-background font-semibold px-8"
-              >
-                {currentStep === STEPS.length - 2 ? 'Generate Config' : currentStep === 0 ? 'Next' : 'Next (or Skip)'}
-              </Button>
-            ) : (
-              <Button
-                onClick={() => {
-                  setCurrentStep(0);
-                  setConfig({ languages: [], theme: '', plugins: [], settings: [], leaderKey: ' ', keymaps: {} });
-                  setGeneratedConfig('');
-                  updateURL(0, { languages: [], theme: '', plugins: [], settings: [], leaderKey: ' ', keymaps: {} });
-                }}
-                variant="outline"
-                size="lg"
-                className="px-8"
-              >
-                Start Over
-              </Button>
-            )}
-          </div>
         </div>
 
         {/* Advanced Features Toggle */}
@@ -766,15 +729,15 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Mobile floating navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border p-4 z-50 shadow-lg">
-        <div className="flex justify-between items-center max-w-sm mx-auto gap-3">
+      {/* Floating navigation for all screen sizes */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border p-4 z-50 shadow-lg">
+        <div className="flex justify-between items-center max-w-2xl mx-auto gap-3">
           <Button
             onClick={handleBack}
             disabled={currentStep === 0}
             variant="outline"
             size="lg"
-            className="flex-1"
+            className="flex-1 md:px-8"
           >
             Back
           </Button>
@@ -784,9 +747,9 @@ const Index = () => {
               onClick={handleNext}
               disabled={!canProceed()}
               size="lg"
-              className="bg-gradient-primary hover:opacity-90 text-background font-semibold flex-1"
+              className="bg-gradient-primary hover:opacity-90 text-background font-semibold flex-1 md:px-8"
             >
-              {currentStep === STEPS.length - 2 ? 'Generate' : 'Next'}
+              {currentStep === STEPS.length - 2 ? 'Generate Config' : currentStep === 0 ? 'Next' : 'Next (or Skip)'}
             </Button>
           ) : (
             <Button
@@ -798,7 +761,7 @@ const Index = () => {
               }}
               variant="outline"
               size="lg"
-              className="flex-1"
+              className="flex-1 md:px-8"
             >
               Start Over
             </Button>
