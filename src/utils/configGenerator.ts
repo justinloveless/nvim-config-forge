@@ -191,7 +191,7 @@ require("lazy").setup({
       null_ls.setup({
         sources = {`;
 
-        // Add language-specific formatters (only commonly available ones)
+        // Add language-specific formatters and linters
         languages.forEach(lang => {
           switch (lang) {
             case 'typescript':
@@ -206,6 +206,15 @@ require("lazy").setup({
             case 'rust':
               initContent += `
           null_ls.builtins.formatting.rustfmt,`;
+              break;
+            case 'go':
+              initContent += `
+          null_ls.builtins.formatting.gofumpt,`;
+              break;
+            case 'c':
+            case 'cpp':
+              initContent += `
+          null_ls.builtins.formatting.clang_format,`;
               break;
             case 'lua':
               initContent += `

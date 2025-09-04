@@ -282,6 +282,69 @@ const Index = () => {
                 <li>Start Neovim - plugins will be automatically installed on first launch</li>
                 <li>Enjoy your configured Neovim setup!</li>
               </ol>
+              
+              {config.languages.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="font-semibold text-nvim-green mb-3">Required Tools for Language Support:</h4>
+                  <div className="space-y-3">
+                    {config.languages.includes('typescript') || config.languages.includes('javascript') ? (
+                      <div>
+                        <p className="font-medium text-foreground">TypeScript/JavaScript:</p>
+                        <code className="block bg-background/50 px-3 py-2 rounded mt-1 text-sm">npm install -g prettier</code>
+                      </div>
+                    ) : null}
+                    
+                    {config.languages.includes('python') && (
+                      <div>
+                        <p className="font-medium text-foreground">Python:</p>
+                        <code className="block bg-background/50 px-3 py-2 rounded mt-1 text-sm">pip install black</code>
+                      </div>
+                    )}
+                    
+                    {config.languages.includes('go') && (
+                      <div>
+                        <p className="font-medium text-foreground">Go:</p>
+                        <code className="block bg-background/50 px-3 py-2 rounded mt-1 text-sm">go install mvdan.cc/gofumpt@latest</code>
+                      </div>
+                    )}
+                    
+                    {(config.languages.includes('c') || config.languages.includes('cpp')) && (
+                      <div>
+                        <p className="font-medium text-foreground">C/C++:</p>
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground">macOS:</p>
+                          <code className="block bg-background/50 px-3 py-2 rounded text-sm">brew install clang-format</code>
+                          <p className="text-xs text-muted-foreground">Ubuntu/Debian:</p>
+                          <code className="block bg-background/50 px-3 py-2 rounded text-sm">sudo apt install clang-format</code>
+                          <p className="text-xs text-muted-foreground">Windows:</p>
+                          <code className="block bg-background/50 px-3 py-2 rounded text-sm">choco install llvm</code>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {config.languages.includes('rust') && (
+                      <div>
+                        <p className="font-medium text-foreground">Rust:</p>
+                        <code className="block bg-background/50 px-3 py-2 rounded mt-1 text-sm">rustup component add rustfmt</code>
+                      </div>
+                    )}
+                    
+                    {config.languages.includes('lua') && (
+                      <div>
+                        <p className="font-medium text-foreground">Lua:</p>
+                        <code className="block bg-background/50 px-3 py-2 rounded mt-1 text-sm">cargo install stylua</code>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="mt-4 p-3 bg-nvim-green/10 border border-nvim-green/20 rounded">
+                    <p className="text-sm text-nvim-green">
+                      <strong>💡 Tip:</strong> Install these tools to enable automatic code formatting. 
+                      Without them, you may see error messages when Neovim tries to format your code.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         );
