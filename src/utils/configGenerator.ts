@@ -10,10 +10,18 @@ interface NvimConfig {
 export const generateInitLua = (config: NvimConfig): string => {
   const { languages, theme, plugins, settings, leaderKey, keymaps } = config;
 
+  // Add leader key mapping first (before any plugins)
+  const leaderKeyDisplay = leaderKey === ' ' ? 'Space' : leaderKey;
+  const leaderKeyLua = leaderKey === ' ' ? "' '" : `'${leaderKey}'`;
+
   let initContent = `-- Generated Neovim Configuration
 -- Languages: ${languages.join(', ')}
 -- Theme: ${theme}
 -- Generated on: ${new Date().toLocaleDateString()}
+
+-- Set leader key (${leaderKeyDisplay}) - Must be set before plugins load
+vim.g.mapleader = ${leaderKeyLua}
+vim.g.maplocalleader = ${leaderKeyLua}
 
 -- Basic Options
 vim.opt.number = true
@@ -514,15 +522,8 @@ vim.cmd.colorscheme('${theme}')
 `;
   }
 
-  // Add leader key mapping and custom keymaps
-  const leaderKeyDisplay = leaderKey === ' ' ? 'Space' : leaderKey;
-  const leaderKeyLua = leaderKey === ' ' ? "' '" : `'${leaderKey}'`;
-  
-  initContent += `\n-- Set leader key (${leaderKeyDisplay})
-vim.g.mapleader = ${leaderKeyLua}
-vim.g.maplocalleader = ${leaderKeyLua}
-
--- Window navigation
+  // Add window navigation keymaps
+  initContent += `\n-- Window navigation
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
