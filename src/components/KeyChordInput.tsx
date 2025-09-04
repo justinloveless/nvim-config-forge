@@ -22,6 +22,7 @@ const KeyChordInput: React.FC<KeyChordInputProps> = ({
   const [isRecording, setIsRecording] = useState(false);
   const [recordedKeys, setRecordedKeys] = useState<string[]>([]);
   const [keySequence, setKeySequence] = useState<string[]>([]);
+  const [pendingModifiers, setPendingModifiers] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const normalizeKey = (key: string, code: string): string => {
@@ -121,68 +122,132 @@ const KeyChordInput: React.FC<KeyChordInputProps> = ({
     return tokens;
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const getKeyFromCode = (code: string): string => {
+    // Handle letters (KeyA, KeyB, etc.)
+    if (code.startsWith('Key')) {
+      return code.slice(3);
+    }
+    // Handle digits (Digit0, Digit1, etc.)  
+    if (code.startsWith('Digit')) {
+      return code.slice(5);
+    }
+    // Handle other special keys
+    const codeMap: { [key: string]: string } = {
+      'Space': 'Space',
+      'Enter': 'CR',
+      'Escape': 'Esc',
+      'Backspace': 'BS',
+      'Delete': 'Del',
+      'Tab': 'Tab',
+      'ArrowUp': 'Up', 
+      'ArrowDown': 'Down',
+      'ArrowLeft': 'Left',
+      'ArrowRight': 'Right',
+      'Home': 'Home',
+      'End': 'End',
+      'PageUp': 'PageUp',
+      'PageDown': 'PageDown',
+      'Insert': 'Insert',
+      'Semicolon': ';',
+      'Equal': '=',
+      'Comma': ',',
+      'Minus': '-',
+      'Period': '.',
+      'Slash': '/',
+      'Backquote': '`',
+      'BracketLeft': '[',
+      'Backslash': '\\',
+      'BracketRight': ']',
+      'Quote': "'"
+    };
+    
+    return codeMap[code] || code;
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent | KeyboardEvent) => {
     if (!isRecording) return;
 
     e.preventDefault();
     e.stopPropagation();
 
-    const keys: string[] = [];
+    const modifiers: string[] = [];
+    if (e.ctrlKey) modifiers.push('Control');
+    if (e.altKey) modifiers.push('Alt');
+    if (e.shiftKey && e.code !== 'ShiftLeft' && e.code !== 'ShiftRight') modifiers.push('Shift');
+    if (e.metaKey) modifiers.push('Meta');
     
-    if (e.ctrlKey) keys.push('Control');
-    if (e.altKey) keys.push('Alt');
-    if (e.shiftKey && e.key !== 'Shift') keys.push('Shift');
-    if (e.metaKey) keys.push('Meta');
+    // Get the main key from the code
+    const mainKey = getKeyFromCode(e.code);
     
-    // When modifiers are pressed, use e.code to get the physical key
-    // as e.key might be a control character
-    let keyToUse = e.key;
-    if ((e.ctrlKey || e.altKey || e.metaKey) && e.code.startsWith('Key')) {
-      // Extract letter from KeyX format (e.g., 'KeyX' -> 'X')
-      keyToUse = e.code.slice(3);
-    } else if ((e.ctrlKey || e.altKey || e.metaKey) && e.code.startsWith('Digit')) {
-      // Extract digit from DigitX format (e.g., 'Digit1' -> '1')
-      keyToUse = e.code.slice(5);
-    }
+    // If only modifier keys are being pressed, don't finalize yet
+    const isOnlyModifiers = ['Control', 'Alt', 'Shift', 'Meta', 'ControlLeft', 'ControlRight', 
+                           'AltLeft', 'AltRight', 'ShiftLeft', 'ShiftRight', 'MetaLeft', 'MetaRight'].includes(e.code);
     
-    const normalizedKey = normalizeKey(keyToUse, e.code);
-    if (!['Control', 'Alt', 'Shift', 'Meta'].includes(normalizedKey)) {
-      keys.push(normalizedKey);
+    if (isOnlyModifiers) {
+      // Update pending modifiers for visual feedback
+      setPendingModifiers(modifiers);
+      return;
     }
 
-    if (keys.length > 0 && keys[keys.length - 1] !== '') {
-      const formattedKey = formatSingleKey(keys);
-      
-      // If this is the first key and it's the leader key, continue recording
-      if (keySequence.length === 0 && formattedKey === '<leader>') {
-        setKeySequence([formattedKey]);
-        setRecordedKeys([]);
-        return; // Continue recording
-      }
-      
-      // If we already have keys in sequence, add this one and finish
-      if (keySequence.length > 0) {
-        const fullSequence = [...keySequence, formattedKey];
-        const final = formatKeySequence(fullSequence);
-        onChange(final);
-        setKeySequence([]);
-        setRecordedKeys([]);
-        setIsRecording(false);
-        return;
-      }
-      
-      // Single key (not leader-based)
-      onChange(formattedKey);
-      setRecordedKeys([]);
+    // We have a complete key combination
+    const keys = [...modifiers, mainKey];
+    const formattedKey = formatSingleKey(keys);
+    
+    // Clear pending modifiers
+    setPendingModifiers([]);
+    
+    // If this is the first key and it's the leader key, continue recording
+    if (keySequence.length === 0 && formattedKey === '<leader>') {
+      setKeySequence([formattedKey]);
+      return; // Continue recording
+    }
+    
+    // If we already have keys in sequence, add this one and finish
+    if (keySequence.length > 0) {
+      const fullSequence = [...keySequence, formattedKey];
+      const final = formatKeySequence(fullSequence);
+      onChange(final);
       setKeySequence([]);
       setIsRecording(false);
+      return;
     }
+    
+    // Single key (not leader-based)
+    onChange(formattedKey);
+    setKeySequence([]);
+    setIsRecording(false);
   };
+
+  // Add document-level key capture when recording
+  useEffect(() => {
+    if (!isRecording) return;
+
+    const handleDocumentKeyDown = (e: KeyboardEvent) => {
+      handleKeyDown(e);
+    };
+
+    const handleDocumentKeyUp = (e: KeyboardEvent) => {
+      // Clear pending modifiers when keys are released
+      if (['Control', 'Alt', 'Shift', 'Meta', 'ControlLeft', 'ControlRight', 
+           'AltLeft', 'AltRight', 'ShiftLeft', 'ShiftRight', 'MetaLeft', 'MetaRight'].includes(e.code)) {
+        setPendingModifiers([]);
+      }
+    };
+
+    document.addEventListener('keydown', handleDocumentKeyDown, { capture: true });
+    document.addEventListener('keyup', handleDocumentKeyUp, { capture: true });
+
+    return () => {
+      document.removeEventListener('keydown', handleDocumentKeyDown, { capture: true });
+      document.removeEventListener('keyup', handleDocumentKeyUp, { capture: true });
+    };
+  }, [isRecording, keySequence, leaderKey, onChange]);
 
   const handleStartRecording = () => {
     setIsRecording(true);
     setRecordedKeys([]);
     setKeySequence([]);
+    setPendingModifiers([]);
     inputRef.current?.focus();
   };
 
@@ -190,13 +255,18 @@ const KeyChordInput: React.FC<KeyChordInputProps> = ({
     onChange('');
     setRecordedKeys([]);
     setKeySequence([]);
+    setPendingModifiers([]);
     setIsRecording(false);
   };
 
   const renderKeyChips = () => {
     // Show current sequence being recorded or the final value
     const displaySequence = isRecording && keySequence.length > 0 ? keySequence : parseKeyChord(value);
-    if (displaySequence.length === 0) return null;
+    
+    // Show pending modifiers if we're recording and have some
+    const showPendingModifiers = isRecording && pendingModifiers.length > 0 && keySequence.length === 0;
+    
+    if (displaySequence.length === 0 && !showPendingModifiers) return null;
 
     return (
       <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-1 pointer-events-none">
@@ -212,6 +282,23 @@ const KeyChordInput: React.FC<KeyChordInputProps> = ({
             {key === '<leader>' ? 'Leader' : key.replace(/[<>]/g, '')}
           </Badge>
         ))}
+        
+        {/* Show pending modifiers */}
+        {showPendingModifiers && (
+          <Badge
+            variant="outline"
+            className="text-xs px-2 py-1 font-mono animate-pulse border-primary/50 bg-primary/10"
+          >
+            {pendingModifiers.map(mod => {
+              if (mod === 'Control') return 'C';
+              if (mod === 'Alt') return 'A';
+              if (mod === 'Shift') return 'S';
+              if (mod === 'Meta') return 'D';
+              return mod;
+            }).join('-')}-...
+          </Badge>
+        )}
+        
         {isRecording && keySequence.length > 0 && (
           <Badge
             variant="outline"
@@ -234,7 +321,7 @@ const KeyChordInput: React.FC<KeyChordInputProps> = ({
         placeholder={value ? '' : placeholder}
         className={cn(
           "font-mono cursor-pointer",
-          (value || (isRecording && keySequence.length > 0)) && "pl-20", // Make space for chips
+          (value || (isRecording && (keySequence.length > 0 || pendingModifiers.length > 0))) && "pl-20", // Make space for chips
           isRecording && "ring-2 ring-primary/50",
           className
         )}
