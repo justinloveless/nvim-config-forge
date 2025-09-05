@@ -312,6 +312,23 @@ const Index = () => {
     }
   }, [config.nvimListenerEnabled, config.nvimListenerPort, config.nvimListenerToken]);
 
+  // Auto-detect listener even when not enabled, and update hasConfigListener/nvimListenerEnabled
+  useEffect(() => {
+    const autoDetect = async () => {
+      const connected = await detectNvimListener({
+        port: config.nvimListenerPort || 45831,
+        token: config.nvimListenerToken || undefined,
+      });
+      setNvimListenerConnected(prev => prev || connected);
+      if (connected && (!config.nvimListenerEnabled || !config.hasConfigListener)) {
+        const updated = { ...config, nvimListenerEnabled: true, hasConfigListener: true };
+        setConfig(updated);
+        updateURL(currentStep, updated);
+      }
+    };
+    autoDetect();
+  }, [config.nvimListenerPort, config.nvimListenerToken]);
+
   // Regenerate config preview whenever options change on the Generate step
   useEffect(() => {
     if (currentStep === STEPS.length - 1) {
@@ -653,6 +670,8 @@ const Index = () => {
         // Map Neovim settings to our web app config structure
         const updatedConfig = {
           ...config,
+          hasConfigListener: true,
+          nvimListenerEnabled: true,
           settingsConfig: {
             ...config.settingsConfig,
             // Map vim options to SettingsConfig properties
@@ -673,8 +692,8 @@ const Index = () => {
         };
         
         setConfig(updatedConfig);
+        setNvimListenerConnected(true);
         updateURL(currentStep, updatedConfig);
-        
         toast({
           title: "Configuration Retrieved",
           description: "Your current Neovim configuration has been loaded successfully.",
