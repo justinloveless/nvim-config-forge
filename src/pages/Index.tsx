@@ -433,6 +433,35 @@ const Index = () => {
     }
   };
 
+  const handleSaveToNvim = async () => {
+    if (!config.nvimListenerEnabled || !nvimListenerConnected) {
+      toast({
+        title: "Neovim listener not available",
+        description: "Please ensure the listener is enabled and connected.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const nvimResult = await saveToNvim(generatedConfig, 'init.lua', {
+      port: config.nvimListenerPort || 45831,
+      token: config.nvimListenerToken || undefined,
+    });
+    
+    if (nvimResult.success) {
+      toast({
+        title: "Config updated in Neovim!",
+        description: "Your init.lua has been saved and reloaded.",
+      });
+    } else {
+      toast({
+        title: "Neovim save failed",
+        description: nvimResult.message || "Failed to save to Neovim.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleApplyPreset = (preset: any) => {
     const presetWithDefaults = { 
       ...preset, 
@@ -714,6 +743,21 @@ const Index = () => {
                       </p>
                     </div>
                   )}
+                </div>
+
+                {/* Save to Neovim Button */}
+                <div className="pt-4 border-t border-border">
+                  <Button
+                    onClick={handleSaveToNvim}
+                    disabled={!config.nvimListenerEnabled || !nvimListenerConnected}
+                    className="w-full bg-nvim-green hover:bg-nvim-green/90 text-background font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Zap className="w-4 h-4 mr-2" />
+                    Save to Neovim
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-2 text-center">
+                    Sends configuration directly to your running Neovim instance
+                  </p>
                 </div>
               </CardContent>
             </Card>
