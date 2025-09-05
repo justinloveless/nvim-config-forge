@@ -102,54 +102,60 @@ local function setup_config_listener()
   local function parse_multipart(body, boundary)
     local parts = {}
     local boundary_pattern = "--" .. boundary
-    local end_boundary = boundary_pattern .. "--"
     
-    -- Split by boundary
-    local sections = {}
-    local current_pos = 1
+    -- Find all boundary positions
+    local boundary_positions = {}
+    local pos = 1
     while true do
-      local start_pos = body:find(boundary_pattern, current_pos, true)
-      if not start_pos then break end
-      
-      local next_pos = body:find(boundary_pattern, start_pos + #boundary_pattern, true)
-      if not next_pos then
-        next_pos = body:find(end_boundary, start_pos + #boundary_pattern, true)
-        if not next_pos then break end
-      end
-      
-      local section = body:sub(start_pos + #boundary_pattern, next_pos - 1)
-      if section:match("^\\r\\n") then
-        section = section:sub(3)  -- Remove leading CRLF
-      end
-      if section ~= "" and not section:match("^--") then
-        table.insert(sections, section)
-      end
-      
-      current_pos = next_pos
+      local found = body:find(boundary_pattern, pos, true)
+      if not found then break end
+      table.insert(boundary_positions, found)
+      pos = found + 1
     end
     
-    -- Parse each section
-    for _, section in ipairs(sections) do
-      local header_end = section:find("\\r\\n\\r\\n", 1, true)
-      if header_end then
-        local headers_str = section:sub(1, header_end - 1)
-        local content = section:sub(header_end + 4)
-        
-        -- Remove trailing CRLF if present
-        if content:sub(-2) == "\\r\\n" then
-          content = content:sub(1, -3)
-        end
-        
-        local disposition = headers_str:match('Content%-Disposition:%s*form%-data;%s*name="([^"]+)"')
-        local filename = headers_str:match('filename="([^"]+)"')
-        
-        if disposition and filename then
-          parts[disposition] = {
-            filename = filename,
-            content = content
-          }
-        end
+    -- Process each part between boundaries
+    for i = 1, #boundary_positions - 1 do
+      local start_pos = boundary_positions[i] + #boundary_pattern
+      local end_pos = boundary_positions[i + 1] - 1
+      local section = body:sub(start_pos, end_pos)
+      
+      -- Skip if empty or just whitespace
+      if section:match("^%s*$") then
+        goto continue
       end
+      
+      -- Remove leading CRLF
+      if section:sub(1, 2) == "\\r\\n" then
+        section = section:sub(3)
+      end
+      
+      -- Find headers and content separator
+      local header_end = section:find("\\r\\n\\r\\n", 1, true)
+      if not header_end then
+        goto continue
+      end
+      
+      local headers_str = section:sub(1, header_end - 1)
+      local content = section:sub(header_end + 4)
+      
+      -- Remove trailing CRLF
+      if content:sub(-2) == "\\r\\n" then
+        content = content:sub(1, -3)
+      end
+      
+      -- Parse Content-Disposition header
+      local name = headers_str:match('name="([^"]*)"')
+      local filename = headers_str:match('filename="([^"]*)"')
+      
+      if name then
+        parts[name] = {
+          filename = filename,
+          content = content,
+          headers = headers_str
+        }
+      end
+      
+      ::continue::
     end
     
     return parts
@@ -229,7 +235,7 @@ local function setup_config_listener()
                   '{"status": "ok", "message": "Neovim listener active"}')
         elseif method == "POST" and path == "/save" then
           local content_type = headers["content-type"] or ""
-          local boundary = content_type:match("boundary=([^;]+)")
+          local boundary = content_type:match("boundary=([^;%s]+)")
           
           if not boundary then
             respond(client, "400 Bad Request", { ["Content-Type"] = "application/json" },
@@ -240,9 +246,9 @@ local function setup_config_listener()
           local parts = parse_multipart(body, boundary)
           local file_part = parts["file"]
           
-          if not file_part or not file_part.filename or not file_part.content then
+          if not file_part or not file_part.content or file_part.content == "" then
             respond(client, "400 Bad Request", { ["Content-Type"] = "application/json" },
-                    '{"error": "Missing file in multipart data"}')
+                    '{"error": "Missing or empty file in multipart data"}')
             return
           end
 
