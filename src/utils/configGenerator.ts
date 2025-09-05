@@ -132,8 +132,15 @@ require("lazy").setup({
       // Add only LSP servers based on selected languages
       const lspServers = languages.map(lang => {
         const serverMap: { [key: string]: string } = {
+          // Web & Frontend
           'typescript': 'ts_ls',
           'javascript': 'ts_ls',
+          'html': 'html',
+          'css': 'cssls',
+          'vue': 'volar',
+          'svelte': 'svelte',
+          
+          // Backend & Systems
           'python': 'pyright',
           'rust': 'rust_analyzer',
           'go': 'gopls',
@@ -141,7 +148,48 @@ require("lazy").setup({
           'cpp': 'clangd',
           'csharp': 'omnisharp',
           'java': 'jdtls',
-          'lua': 'lua_ls'
+          'kotlin': 'kotlin_language_server',
+          'scala': 'metals',
+          'php': 'phpactor',
+          'ruby': 'solargraph',
+          'dart': 'dartls',
+          'swift': 'sourcekit',
+          'zig': 'zls',
+          
+          // Functional
+          'haskell': 'hls',
+          'ocaml': 'ocamllsp',
+          'elixir': 'elixirls',
+          'erlang': 'erlangls',
+          'clojure': 'clojure_lsp',
+          'fsharp': 'fsautocomplete',
+          
+          // Data & ML
+          'r': 'r_language_server',
+          'julia': 'julials',
+          'matlab': 'matlab_ls',
+          
+          // Shell & Config
+          'bash': 'bashls',
+          'fish': 'fish_lsp',
+          'powershell': 'powershell_es',
+          'lua': 'lua_ls',
+          
+          // Config & Markup
+          'yaml': 'yamlls',
+          'json': 'jsonls',
+          'toml': 'taplo',
+          'xml': 'lemminx',
+          'markdown': 'marksman',
+          
+          // Database
+          'sql': 'sqlls',
+          
+          // Other
+          'nix': 'nil_ls',
+          'dockerfile': 'dockerls',
+          'terraform': 'terraformls',
+          'vim': 'vimls'
         };
         return serverMap[lang];
       }).filter(Boolean);

@@ -50,8 +50,15 @@ const STEPS = [
 ];
 
 const LANGUAGE_OPTIONS = [
+  // Web & Frontend
   { id: 'typescript', title: 'TypeScript', description: 'Strongly typed JavaScript with advanced tooling', icon: <Code className="w-5 h-5" /> },
   { id: 'javascript', title: 'JavaScript', description: 'Dynamic scripting language for web development', icon: <Code className="w-5 h-5" /> },
+  { id: 'html', title: 'HTML', description: 'Markup language for web content', icon: <Code className="w-5 h-5" /> },
+  { id: 'css', title: 'CSS', description: 'Styling language for web presentation', icon: <Code className="w-5 h-5" /> },
+  { id: 'vue', title: 'Vue', description: 'Progressive JavaScript framework', icon: <Code className="w-5 h-5" /> },
+  { id: 'svelte', title: 'Svelte', description: 'Compile-time JavaScript framework', icon: <Code className="w-5 h-5" /> },
+  
+  // Backend & Systems
   { id: 'python', title: 'Python', description: 'Versatile language for scripting and data science', icon: <Code className="w-5 h-5" /> },
   { id: 'rust', title: 'Rust', description: 'Systems programming language focused on safety', icon: <Code className="w-5 h-5" /> },
   { id: 'go', title: 'Go', description: 'Simple, fast, and reliable language for servers', icon: <Code className="w-5 h-5" /> },
@@ -59,7 +66,48 @@ const LANGUAGE_OPTIONS = [
   { id: 'cpp', title: 'C++', description: 'Object-oriented extension of C', icon: <Code className="w-5 h-5" /> },
   { id: 'csharp', title: 'C#', description: 'Microsoft\'s object-oriented language', icon: <Code className="w-5 h-5" /> },
   { id: 'java', title: 'Java', description: 'Enterprise-grade object-oriented language', icon: <Code className="w-5 h-5" /> },
+  { id: 'kotlin', title: 'Kotlin', description: 'Modern JVM language by JetBrains', icon: <Code className="w-5 h-5" /> },
+  { id: 'scala', title: 'Scala', description: 'Functional programming on the JVM', icon: <Code className="w-5 h-5" /> },
+  { id: 'php', title: 'PHP', description: 'Server-side scripting language', icon: <Code className="w-5 h-5" /> },
+  { id: 'ruby', title: 'Ruby', description: 'Dynamic, elegant programming language', icon: <Code className="w-5 h-5" /> },
+  { id: 'dart', title: 'Dart', description: 'Language optimized for Flutter development', icon: <Code className="w-5 h-5" /> },
+  { id: 'swift', title: 'Swift', description: 'Apple\'s programming language for iOS/macOS', icon: <Code className="w-5 h-5" /> },
+  { id: 'zig', title: 'Zig', description: 'Fast, safe systems programming language', icon: <Code className="w-5 h-5" /> },
+  
+  // Functional
+  { id: 'haskell', title: 'Haskell', description: 'Pure functional programming language', icon: <Code className="w-5 h-5" /> },
+  { id: 'ocaml', title: 'OCaml', description: 'Industrial-strength functional programming', icon: <Code className="w-5 h-5" /> },
+  { id: 'elixir', title: 'Elixir', description: 'Dynamic, fault-tolerant language on Erlang VM', icon: <Code className="w-5 h-5" /> },
+  { id: 'erlang', title: 'Erlang', description: 'Concurrent, fault-tolerant language', icon: <Code className="w-5 h-5" /> },
+  { id: 'clojure', title: 'Clojure', description: 'Modern Lisp for the JVM', icon: <Code className="w-5 h-5" /> },
+  { id: 'fsharp', title: 'F#', description: 'Functional-first .NET language', icon: <Code className="w-5 h-5" /> },
+  
+  // Data & ML
+  { id: 'r', title: 'R', description: 'Statistical computing and graphics', icon: <Code className="w-5 h-5" /> },
+  { id: 'julia', title: 'Julia', description: 'High-performance numerical computing', icon: <Code className="w-5 h-5" /> },
+  { id: 'matlab', title: 'MATLAB', description: 'Technical computing language', icon: <Code className="w-5 h-5" /> },
+  
+  // Shell & Config
+  { id: 'bash', title: 'Bash', description: 'Unix shell scripting language', icon: <Code className="w-5 h-5" /> },
+  { id: 'fish', title: 'Fish', description: 'User-friendly command line shell', icon: <Code className="w-5 h-5" /> },
+  { id: 'powershell', title: 'PowerShell', description: 'Microsoft\'s task automation framework', icon: <Code className="w-5 h-5" /> },
   { id: 'lua', title: 'Lua', description: 'Lightweight scripting language (for Neovim config)', icon: <Code className="w-5 h-5" /> },
+  
+  // Config & Markup
+  { id: 'yaml', title: 'YAML', description: 'Human-readable data serialization', icon: <Code className="w-5 h-5" /> },
+  { id: 'json', title: 'JSON', description: 'Lightweight data-interchange format', icon: <Code className="w-5 h-5" /> },
+  { id: 'toml', title: 'TOML', description: 'Configuration file format', icon: <Code className="w-5 h-5" /> },
+  { id: 'xml', title: 'XML', description: 'Extensible markup language', icon: <Code className="w-5 h-5" /> },
+  { id: 'markdown', title: 'Markdown', description: 'Lightweight markup language', icon: <Code className="w-5 h-5" /> },
+  
+  // Database
+  { id: 'sql', title: 'SQL', description: 'Database query language', icon: <Code className="w-5 h-5" /> },
+  
+  // Other
+  { id: 'nix', title: 'Nix', description: 'Functional package manager language', icon: <Code className="w-5 h-5" /> },
+  { id: 'dockerfile', title: 'Dockerfile', description: 'Container build instructions', icon: <Code className="w-5 h-5" /> },
+  { id: 'terraform', title: 'Terraform', description: 'Infrastructure as code language', icon: <Code className="w-5 h-5" /> },
+  { id: 'vim', title: 'Vimscript', description: 'Vim editor scripting language', icon: <Code className="w-5 h-5" /> },
 ];
 
 const THEME_OPTIONS = [
