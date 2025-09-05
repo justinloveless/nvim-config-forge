@@ -95,7 +95,54 @@ export const GenerateActions: React.FC<GenerateActionsProps> = ({
 }) => {
   const [selectedCategory, setSelectedCategory] = useState('save-nvim');
 
-  const renderSaveToNvim = () => (
+  const renderSaveToNvim = () => {
+    // Check if user is on mobile
+    const isMobile = window.innerWidth < 1024; // lg breakpoint
+    
+    if (isMobile) {
+      return (
+        <div className="space-y-6">
+          <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30">
+            <div className="flex items-center gap-2">
+              <Monitor className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <div className="text-blue-700 dark:text-blue-300">
+                <div className="font-medium text-sm">
+                  Desktop Required
+                </div>
+                <div className="text-sm">
+                  Saving directly to your local Neovim requires a desktop computer with Neovim running
+                </div>
+              </div>
+            </div>
+          </Alert>
+          
+          <div className="text-center py-8 space-y-4">
+            <Monitor className="w-16 h-16 mx-auto text-muted-foreground" />
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">Save to Neovim on Desktop</h3>
+              <p className="text-muted-foreground">
+                To save your configuration directly to Neovim, you'll need to:
+              </p>
+            </div>
+            <div className="text-left max-w-md mx-auto">
+              <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+                <li>Open this configurator on a desktop computer</li>
+                <li>Start Neovim in a terminal</li>
+                <li>Run <code className="bg-muted px-1 rounded">:lua require('config_listener').start()</code></li>
+                <li>Return to this page to save directly</li>
+              </ol>
+            </div>
+            <div className="pt-4">
+              <p className="text-xs text-muted-foreground">
+                For now, you can use the "Copy & Download" tab to get your configuration files
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    return (
     <div className="space-y-6">
       {/* Neovim Listener Status */}
       <Alert className={cn(
@@ -176,7 +223,8 @@ export const GenerateActions: React.FC<GenerateActionsProps> = ({
         </ol>
       </div>
     </div>
-  );
+    );
+  };
 
   const renderCopyDownload = () => (
     <div className="space-y-6">
