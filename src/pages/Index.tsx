@@ -604,14 +604,12 @@ const Index = () => {
     setConfig(updatedConfig);
     
     // Determine next step based on setup type
-    let nextStep = 1; // Default to presets
-    if (setupType === 'existing-no-listener') {
-      // Skip presets and go to import step (we'll handle this in the component)
-      nextStep = 2; // Languages step after import
-    } else if (setupType === 'existing-with-listener') {
-      // Skip presets and go to languages step (listener already queried)
+    let nextStep = 1; // Default to step 1
+    if (setupType === 'existing-with-listener') {
+      // Skip presets and import, go straight to languages step
       nextStep = 2;
     }
+    // For fresh and existing-no-listener, go to step 1 (presets or import respectively)
     
     setCurrentStep(nextStep);
     updateURL(nextStep, updatedConfig);
@@ -623,25 +621,64 @@ const Index = () => {
 
   const handleQueryListener = async () => {
     try {
-      // Query the listener for current config
-      // This would need to be implemented based on your listener API
       toast({
         title: "Querying Configuration",
         description: "Fetching your current Neovim configuration...",
       });
       
-      // TODO: Implement actual listener query
-      // For now, just show a success message
-      setTimeout(() => {
+      // Query the new /config endpoint
+      const response = await fetch(`http://127.0.0.1:${config.nvimListenerPort || 45831}/config`, {
+        method: 'GET',
+        headers: config.nvimListenerToken ? { 'Authorization': `Bearer ${config.nvimListenerToken}` } : {},
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const configData = await response.json();
+      
+      // Update the web app state with the retrieved configuration
+      if (configData.success && configData.config) {
+        const nvimConfig = configData.config;
+        
+        // Map Neovim settings to our web app config structure
+        const updatedConfig = {
+          ...config,
+          settingsConfig: {
+            ...config.settingsConfig,
+            // Map vim options to SettingsConfig properties
+            lineNumbers: (nvimConfig.number && nvimConfig.relativenumber ? 'both' 
+                        : nvimConfig.relativenumber ? 'relative'
+                        : nvimConfig.number ? 'absolute' 
+                        : 'none') as 'both' | 'relative' | 'absolute' | 'none',
+            lineWrapping: nvimConfig.wrap === true,
+            cursorLine: nvimConfig.cursorline === true,
+            scrollOffset: nvimConfig.scrolloff || 0,
+            autoSave: nvimConfig.autowrite === true,
+            smartCase: nvimConfig.smartcase === true,
+            ignoreCase: nvimConfig.ignorecase === true,
+            splitDirection: (nvimConfig.splitbelow ? 'below' : 'right') as 'right' | 'below',
+            updateTime: nvimConfig.updatetime || 4000,
+            indentSize: nvimConfig.shiftwidth || 2,
+          }
+        };
+        
+        setConfig(updatedConfig);
+        updateURL(currentStep, updatedConfig);
+        
         toast({
           title: "Configuration Retrieved",
-          description: "Your current Neovim configuration has been loaded.",
+          description: "Your current Neovim configuration has been loaded successfully.",
         });
-      }, 1500);
+      } else {
+        throw new Error(configData.message || 'Invalid response format');
+      }
     } catch (error) {
+      console.error('Failed to query listener:', error);
       toast({
         title: "Query Failed",
-        description: "Could not retrieve configuration from Neovim listener.",
+        description: error instanceof Error ? error.message : "Could not retrieve configuration from Neovim listener.",
         variant: "destructive",
       });
     }
