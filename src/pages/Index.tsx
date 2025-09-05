@@ -17,6 +17,7 @@ import { PresetStacks } from '@/components/PresetStacks';
 import { InstallerScripts } from '@/components/InstallerScripts';
 import { HealthCheckAnalyzer } from '@/components/HealthCheckAnalyzer';
 import { ConfigImporter } from '@/components/ConfigImporter';
+import { BuyMeCoffeeButton } from '@/components/BuyMeCoffeeButton';
 import { connectDirectory, writeToConnectedDirectory, hasDirectoryConnection } from '@/utils/dirHandleStore';
 import { detectNvimListener, saveToNvim } from '@/utils/nvimListener';
 import { Code, Palette, Plug, Settings, Download, FileText, Copy, Check, Zap, Wrench, FileUp, Folder, RefreshCw, Wifi, WifiOff } from 'lucide-react';
@@ -1009,6 +1010,9 @@ const Index = () => {
               : "mb-0 opacity-0 -translate-y-8 pointer-events-none"
           )}
         >
+          <div className="absolute top-4 right-4">
+            <BuyMeCoffeeButton />
+          </div>
           <h1 className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 bg-gradient-primary bg-clip-text text-transparent">
             Neovim Config Generator
           </h1>
