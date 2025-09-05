@@ -211,6 +211,14 @@ const Index = () => {
     }
   }, [config.nvimListenerEnabled, config.nvimListenerPort, config.nvimListenerToken]);
 
+  // Regenerate config preview whenever options change on the Generate step
+  useEffect(() => {
+    if (currentStep === STEPS.length - 1) {
+      const updated = generateInitLua(config);
+      setGeneratedConfig(updated);
+    }
+  }, [config, currentStep]);
+
   const CodeBlock: React.FC<{ command: string; id: string }> = ({ command, id }) => {
     const handleCopy = async () => {
       try {
