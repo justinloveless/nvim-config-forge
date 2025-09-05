@@ -125,6 +125,7 @@ require("lazy").setup({
   },
   {
     "williamboman/mason-lspconfig.nvim",
+    dependencies = { "mason.nvim" },
     config = function()
       require("mason-lspconfig").setup({
         ensure_installed = {`;
@@ -199,30 +200,25 @@ require("lazy").setup({
         },
         automatic_installation = false,
       })
-      
-      -- Setup handlers for automatic LSP server setup
-      require("mason-lspconfig").setup_handlers({
-        function(server_name)
-          require("lspconfig")[server_name].setup({})
-        end,
-      })
     end,
   },
   {
     "neovim/nvim-lspconfig",
+    dependencies = { "mason.nvim", "mason-lspconfig.nvim" },
     config = function()
       local capabilities = require('cmp_nvim_lsp').default_capabilities()
       local lspconfig = require('lspconfig')
       
+      -- Setup handlers for automatic LSP server setup
+      require("mason-lspconfig").setup_handlers({
+        function(server_name)
+          require("lspconfig")[server_name].setup({
+            capabilities = capabilities
+          })
+        end,
+      })
+      
 `;
-
-      // Setup each LSP server
-      lspServers.forEach(server => {
-        if (server) {
-          initContent += `      lspconfig.${server}.setup({ capabilities = capabilities })
-`;
-        }
-      });
 
       initContent += `    end,
   },
