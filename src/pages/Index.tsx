@@ -1019,10 +1019,10 @@ const Index = () => {
 
         <div 
           className={cn(
-            "text-center transition-all duration-500 ease-out",
+            "text-center transition-all duration-500 ease-out overflow-hidden",
             currentStep === 0 
-              ? "mb-8 md:mb-16 opacity-100 translate-y-0" 
-              : "mb-0 opacity-0 -translate-y-8 pointer-events-none"
+              ? "mb-8 md:mb-16 opacity-100 translate-y-0 h-auto" 
+              : "mb-0 opacity-0 -translate-y-8 pointer-events-none h-0"
           )}
         >
           <h1 className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 bg-gradient-primary bg-clip-text text-transparent">
