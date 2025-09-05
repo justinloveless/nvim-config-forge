@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Code, Globe, Database, Gamepad2, Cpu, Palette, FileUp } from 'lucide-react';
+import { Code, Globe, Database, Gamepad2, Cpu, Palette, FileUp, Zap } from 'lucide-react';
 import { ConfigImporter } from './ConfigImporter';
 
 export interface NvimConfig {
@@ -19,6 +19,53 @@ interface PresetStacksProps {
 }
 
 const PRESET_STACKS = [
+  {
+    id: 'complete-setup',
+    title: 'Complete Setup',
+    description: 'Ultimate configuration with all languages and essential plugins',
+    icon: <Zap className="w-6 h-6" />,
+    color: 'text-yellow-500',
+    config: {
+      languages: [
+        // Web & Frontend
+        'typescript', 'javascript', 'html', 'css', 'vue', 'svelte',
+        // Backend & Systems
+        'python', 'rust', 'go', 'c', 'cpp', 'csharp', 'java', 'kotlin', 'scala', 'php', 'ruby', 'dart', 'swift', 'zig',
+        // Functional
+        'haskell', 'ocaml', 'elixir', 'erlang', 'clojure', 'fsharp',
+        // Data & ML
+        'r', 'julia', 'matlab',
+        // Shell & Config
+        'bash', 'fish', 'powershell', 'lua',
+        // Config & Markup
+        'yaml', 'json', 'toml', 'xml', 'markdown',
+        // Database
+        'sql',
+        // Other
+        'nix', 'dockerfile', 'terraform', 'vim'
+      ],
+      theme: 'catppuccin',
+      plugins: [
+        'treesitter', 'telescope', 'nvim-tree', 'lualine', 'which-key', 'gitsigns', 
+        'nvim-surround', 'nvim-dap', 'tabbufline', 'dashboard', 'indent-blankline',
+        'nvim-notify', 'nvim-autopairs', 'comment', 'toggleterm', 'mason'
+      ],
+      settings: ['line_numbers', 'auto_save', 'wrap_text', 'relative_numbers'],
+      leaderKey: ' ',
+      keymaps: {
+        save_file: '<leader>w',
+        quit: '<leader>q',
+        terminal_toggle: '<leader>t',
+        buffer_close: '<leader>bd',
+        buffer_next: '<leader>bn',
+        buffer_prev: '<leader>bp',
+        split_vertical: '<leader>v',
+        split_horizontal: '<leader>s',
+        select_all: '<leader>a',
+        search_replace: '<leader>sr'
+      }
+    }
+  },
   {
     id: 'web-dev',
     title: 'Web Development',
