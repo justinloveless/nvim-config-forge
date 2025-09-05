@@ -17,11 +17,13 @@ import { ConfigImporter } from './ConfigImporter';
 interface SetupQuestionsProps {
   onSetupChoice: (setupType: 'fresh' | 'existing-no-listener' | 'existing-with-listener', hasConfigListener: boolean) => void;
   onImportConfig: (config: any) => void;
+  onQueryListener: () => Promise<void>;
 }
 
 export const SetupQuestions: React.FC<SetupQuestionsProps> = ({ 
   onSetupChoice, 
-  onImportConfig 
+  onImportConfig,
+  onQueryListener
 }) => {
   const [showImporter, setShowImporter] = React.useState(false);
 
@@ -144,7 +146,12 @@ export const SetupQuestions: React.FC<SetupQuestionsProps> = ({
                 </div>
                 
                 <Button 
-                  onClick={() => onSetupChoice(option.type, option.hasConfigListener)}
+                  onClick={async () => {
+                    if (option.type === 'existing-with-listener') {
+                      await onQueryListener();
+                    }
+                    onSetupChoice(option.type, option.hasConfigListener);
+                  }}
                   className="w-full group-hover:bg-primary/90"
                 >
                   Choose This Setup

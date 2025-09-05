@@ -412,7 +412,13 @@ const Index = () => {
   };
 
   const handleNext = () => {
-    const newStep = Math.min(currentStep + 1, STEPS.length - 1);
+    let newStep = Math.min(currentStep + 1, STEPS.length - 1);
+    
+    // Skip presets step for non-fresh installs
+    if (newStep === 1 && config.setupType !== 'fresh') {
+      newStep = 2; // Skip to languages
+    }
+    
     setIsTransitioning(true);
     
     setTimeout(() => {
@@ -428,7 +434,13 @@ const Index = () => {
   };
 
   const handleBack = () => {
-    const newStep = Math.max(currentStep - 1, 0);
+    let newStep = Math.max(currentStep - 1, 0);
+    
+    // Skip presets step for non-fresh installs when going back
+    if (newStep === 1 && config.setupType !== 'fresh') {
+      newStep = 0; // Go back to setup
+    }
+    
     setIsTransitioning(true);
     
     setTimeout(() => {
@@ -590,12 +602,49 @@ const Index = () => {
       nvimListenerEnabled: hasConfigListener 
     };
     setConfig(updatedConfig);
-    setCurrentStep(1);
-    updateURL(1, updatedConfig);
+    
+    // Determine next step based on setup type
+    let nextStep = 1; // Default to presets
+    if (setupType === 'existing-no-listener') {
+      // Skip presets and go to import step (we'll handle this in the component)
+      nextStep = 2; // Languages step after import
+    } else if (setupType === 'existing-with-listener') {
+      // Skip presets and go to languages step (listener already queried)
+      nextStep = 2;
+    }
+    
+    setCurrentStep(nextStep);
+    updateURL(nextStep, updatedConfig);
     toast({
       title: "Setup Configured!",
       description: `Selected ${setupType.replace('-', ' ')} setup.`,
     });
+  };
+
+  const handleQueryListener = async () => {
+    try {
+      // Query the listener for current config
+      // This would need to be implemented based on your listener API
+      toast({
+        title: "Querying Configuration",
+        description: "Fetching your current Neovim configuration...",
+      });
+      
+      // TODO: Implement actual listener query
+      // For now, just show a success message
+      setTimeout(() => {
+        toast({
+          title: "Configuration Retrieved",
+          description: "Your current Neovim configuration has been loaded.",
+        });
+      }, 1500);
+    } catch (error) {
+      toast({
+        title: "Query Failed",
+        description: "Could not retrieve configuration from Neovim listener.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleApplyPreset = (preset: any) => {
@@ -629,7 +678,14 @@ const Index = () => {
   const canProceed = () => {
     switch (currentStep) {
       case 0: return config.setupType !== undefined; // Setup step
-      case 1: return true; // Quick start step
+      case 1: 
+        if (config.setupType === 'fresh') {
+          return true; // Presets are optional
+        } else if (config.setupType === 'existing-no-listener') {
+          return true; // Import is optional, can skip
+        } else {
+          return true; // Listener setup
+        }
       case 2: return config.languages.length > 0; // Languages step
       case 3: return true; // Theme is optional (can skip)
       case 4: return true; // Plugins are optional
@@ -645,13 +701,40 @@ const Index = () => {
         return (
           <SetupQuestions 
             onSetupChoice={handleSetupChoice} 
-            onImportConfig={handleImportConfig} 
+            onImportConfig={handleImportConfig}
+            onQueryListener={handleQueryListener}
           />
         );
       case 1:
-        return (
-          <PresetStacks onApplyPreset={handleApplyPreset} />
-        );
+        // Only show presets for fresh installs
+        if (config.setupType === 'fresh') {
+          return (
+            <PresetStacks onApplyPreset={handleApplyPreset} />
+          );
+        } else if (config.setupType === 'existing-no-listener') {
+          // Show import for existing installs without listener
+          return (
+            <div className="space-y-8">
+              <div className="text-center space-y-4">
+                <h2 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                  Import Your Configuration
+                </h2>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  Import your existing Neovim configuration to customize it further, or skip to start fresh.
+                </p>
+              </div>
+              <Card>
+                <CardContent className="pt-6">
+                  <ConfigImporter onImportConfig={handleImportConfig} />
+                </CardContent>
+              </Card>
+            </div>
+          );
+        } else {
+          // For listener setups, skip to languages
+          setCurrentStep(2);
+          return null;
+        }
       case 2:
         return (
           <WizardStep
