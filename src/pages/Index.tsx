@@ -1006,16 +1006,17 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-card pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-card pb-24 relative">
+      {/* Always visible Buy me a coffee button - positioned outside container */}
+      <div className="fixed top-4 right-4 z-50">
+        <BuyMeCoffeeButton />
+      </div>
+      
       <div className={cn(
         "container mx-auto px-4 max-w-6xl mb-20",
         currentStep === 0 ? "py-6 md:py-12" : "pt-1 pb-6 md:pt-2 md:pb-12"
       )}>
         {/* Header - Only show on Quick Start step with animation */}
-        {/* Always visible Buy me a coffee button */}
-        <div className="absolute top-4 right-4 z-10">
-          <BuyMeCoffeeButton />
-        </div>
 
         <div 
           className={cn(
