@@ -126,6 +126,11 @@ const Index = () => {
     if (Object.keys(newConfig.keymaps).length > 0) {
       params.set('keymaps', JSON.stringify(newConfig.keymaps));
     }
+    // Persist listener state (no token) for convenience
+    if (newConfig.nvimListenerEnabled) {
+      params.set('nvimListener', '1');
+      if (newConfig.nvimListenerPort) params.set('nvimPort', String(newConfig.nvimListenerPort));
+    }
     
     const newURL = `${window.location.pathname}?${params.toString()}`;
     window.history.replaceState({}, '', newURL);
@@ -140,8 +145,10 @@ const Index = () => {
     const settings = params.get('settings')?.split(',').filter(Boolean) || [];
     const leaderKey = params.get('leaderKey') || ' ';
     const downloadDir = params.get('downloadDir') || '';
+    const nvimListenerEnabled = params.get('nvimListener') === '1';
+    const nvimListenerPort = parseInt(params.get('nvimPort') || '') || 45831;
     
-    let keymaps = {};
+    let keymaps = {} as Record<string, string>;
     try {
       const keymapsParam = params.get('keymaps');
       if (keymapsParam) {
@@ -151,7 +158,22 @@ const Index = () => {
       console.warn('Failed to parse keymaps from URL:', e);
     }
 
-    const newConfig = { 
+    const defaults: NvimConfig = {
+      languages: [],
+      theme: '',
+      plugins: [],
+      settings: [],
+      settingsConfig: getDefaultSettingsConfig(),
+      leaderKey: ' ',
+      keymaps: {},
+      downloadDir: '',
+      nvimListenerEnabled: false,
+      nvimListenerPort: 45831,
+      nvimListenerToken: ''
+    };
+
+    const newConfig: NvimConfig = { 
+      ...defaults,
       languages, 
       theme, 
       plugins, 
@@ -159,7 +181,9 @@ const Index = () => {
       settingsConfig: getDefaultSettingsConfig(), 
       leaderKey, 
       keymaps,
-      downloadDir
+      downloadDir,
+      nvimListenerEnabled,
+      nvimListenerPort
     };
     setCurrentStep(step);
     setConfig(newConfig);
@@ -200,7 +224,7 @@ const Index = () => {
     if (config.nvimListenerEnabled) {
       const checkConnection = async () => {
         const connected = await detectNvimListener({
-          port: config.nvimListenerPort,
+          port: config.nvimListenerPort || 45831,
           token: config.nvimListenerToken || undefined,
         });
         setNvimListenerConnected(connected);
@@ -338,7 +362,7 @@ const Index = () => {
     // Try Neovim listener first if enabled and connected
     if (config.nvimListenerEnabled && nvimListenerConnected) {
       const nvimResult = await saveToNvim(generatedConfig, 'init.lua', {
-        port: config.nvimListenerPort,
+        port: config.nvimListenerPort || 45831,
         token: config.nvimListenerToken || undefined,
       });
       
@@ -552,7 +576,11 @@ const Index = () => {
                         id="nvim-listener"
                         checked={config.nvimListenerEnabled || false}
                         onCheckedChange={(enabled) => {
-                          const newConfig = { ...config, nvimListenerEnabled: enabled };
+                          const newConfig = { 
+                            ...config, 
+                            nvimListenerEnabled: enabled,
+                            nvimListenerPort: enabled ? (config.nvimListenerPort || 45831) : config.nvimListenerPort,
+                          };
                           setConfig(newConfig);
                           updateURL(currentStep, newConfig);
                         }}
@@ -618,7 +646,7 @@ const Index = () => {
                           size="sm"
                           onClick={async () => {
                             const connected = await detectNvimListener({
-                              port: config.nvimListenerPort,
+                              port: config.nvimListenerPort || 45831,
                               token: config.nvimListenerToken || undefined,
                             });
                             setNvimListenerConnected(connected);
