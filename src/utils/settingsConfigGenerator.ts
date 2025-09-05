@@ -211,7 +211,7 @@ export const generatePluginSettingsLua = (
     
     if (settings.debugging.showInlineVariables) {
       lua += `-- Enable inline variable display\n`;
-      lua += `vim.fn.sign_define('DapBreakpoint', { text='●', texthl='DapBreakpoint', linehl='', numhl='' })\n`;
+      lua += `vim.fn.sign_define('DapBreakpoint', { text='B', texthl='DapBreakpoint', linehl='', numhl='' })\n`;
     }
 
     if (settings.debugging.breakOnException) {
