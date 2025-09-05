@@ -364,61 +364,65 @@ local function setup_config_listener()
           end
         elseif method == "GET" and path == "/api/options" then
           -- Get all vim options and their current values
-          local options = {}
-          local option_info = vim.api.nvim_get_all_options_info()
-          
-          for name, info in pairs(option_info) do
-            local success, value = pcall(vim.api.nvim_get_option_value, name, {})
-            if success then
-              local option_type = "string"
-              if type(value) == "boolean" then
-                option_type = "boolean"
-              elseif type(value) == "number" then
-                option_type = "number"
-              elseif type(value) == "table" then
-                option_type = "array"
+          vim.schedule(function()
+            local options = {}
+            local option_info = vim.api.nvim_get_all_options_info()
+            
+            for name, info in pairs(option_info) do
+              local success, value = pcall(vim.api.nvim_get_option_value, name, {})
+              if success then
+                local option_type = "string"
+                if type(value) == "boolean" then
+                  option_type = "boolean"
+                elseif type(value) == "number" then
+                  option_type = "number"
+                elseif type(value) == "table" then
+                  option_type = "array"
+                end
+                
+                table.insert(options, {
+                  name = name,
+                  value = value,
+                  type = option_type,
+                  scope = info.scope or "global",
+                  description = info.shortdesc or "",
+                  default = info.default
+                })
               end
-              
-              table.insert(options, {
-                name = name,
-                value = value,
-                type = option_type,
-                scope = info.scope or "global",
-                description = info.shortdesc or "",
-                default = info.default
-              })
             end
-          end
-          
-          local options_json = vim.fn.json_encode({ options = options })
-          respond(client, "200 OK", { ["Content-Type"] = "application/json" }, options_json)
+            
+            local options_json = vim.fn.json_encode({ options = options })
+            respond(client, "200 OK", { ["Content-Type"] = "application/json" }, options_json)
+          end)
         elseif method == "GET" and path == "/config" then
           -- Get current vim configuration (vim.opt values)
-          local vim_config = {}
-          
-          -- Get commonly used vim options
-          local common_options = {
-            "number", "relativenumber", "wrap", "cursorline", "cursorcolumn",
-            "tabstop", "shiftwidth", "expandtab", "smartindent", "autoindent",
-            "hlsearch", "incsearch", "ignorecase", "smartcase",
-            "backup", "writebackup", "swapfile", "undofile",
-            "mouse", "clipboard", "termguicolors", "background",
-            "foldmethod", "foldlevel", "scrolloff", "sidescrolloff",
-            "splitbelow", "splitright", "hidden", "updatetime"
-          }
-          
-          for _, option in ipairs(common_options) do
-            local success, value = pcall(vim.api.nvim_get_option_value, option, {})
-            if success then
-              vim_config[option] = value
+          vim.schedule(function()
+            local vim_config = {}
+            
+            -- Get commonly used vim options
+            local common_options = {
+              "number", "relativenumber", "wrap", "cursorline", "cursorcolumn",
+              "tabstop", "shiftwidth", "expandtab", "smartindent", "autoindent",
+              "hlsearch", "incsearch", "ignorecase", "smartcase",
+              "backup", "writebackup", "swapfile", "undofile",
+              "mouse", "clipboard", "termguicolors", "background",
+              "foldmethod", "foldlevel", "scrolloff", "sidescrolloff",
+              "splitbelow", "splitright", "hidden", "updatetime"
+            }
+            
+            for _, option in ipairs(common_options) do
+              local success, value = pcall(vim.api.nvim_get_option_value, option, {})
+              if success then
+                vim_config[option] = value
+              end
             end
-          end
-          
-          local config_json = vim.fn.json_encode({
-            success = true,
-            config = vim_config
-          })
-          respond(client, "200 OK", { ["Content-Type"] = "application/json" }, config_json)
+            
+            local config_json = vim.fn.json_encode({
+              success = true,
+              config = vim_config
+            })
+            respond(client, "200 OK", { ["Content-Type"] = "application/json" }, config_json)
+          end)
         elseif method == "POST" and path == "/api/options" then
           -- Set a vim option
           local success, json_data = pcall(vim.fn.json_decode, body)
