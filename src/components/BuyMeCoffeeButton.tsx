@@ -4,7 +4,7 @@ import { Heart } from 'lucide-react';
 
 export const BuyMeCoffeeButton: React.FC = () => {
   const handleClick = () => {
-    window.open('https://buymeacoffee.com/yourusername', '_blank');
+    window.open('https://buymeacoffee.com/j.lo', '_blank');
   };
 
   return (
