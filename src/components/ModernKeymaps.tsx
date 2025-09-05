@@ -535,10 +535,65 @@ const ModernKeymaps: React.FC<ModernKeymapsProps> = ({
         </Alert>
       )}
 
+      {/* Mobile Category Dropdown and Search */}
+      <div className="block lg:hidden max-w-7xl mx-auto space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm font-medium mb-2 block">Category</Label>
+            <Select value={selectedSection} onValueChange={setSelectedSection}>
+              <SelectTrigger>
+                <div className="flex items-center gap-2">
+                  {currentSection.icon}
+                  <SelectValue />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                {visibleSections.map((section) => {
+                  const visibleActions = getVisibleActions(section.actions);
+                  const hasVisibleActions = visibleActions.length > 0;
+                  
+                  return (
+                    <SelectItem key={section.id} value={section.id}>
+                      <div className="flex items-center gap-2">
+                        {section.icon}
+                        <div>
+                          <div className="font-medium text-sm">{section.title}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {hasVisibleActions ? `${visibleActions.length} keybinding${visibleActions.length !== 1 ? 's' : ''}` : 'No matches'}
+                          </div>
+                        </div>
+                        {section.pluginId && (
+                          <Badge variant="secondary" className="text-xs ml-2">
+                            Plugin
+                          </Badge>
+                        )}
+                      </div>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <Label className="text-sm font-medium mb-2 block">Search</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search keymaps..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Main Keymaps Interface */}
-      <div className="grid grid-cols-12 gap-6 max-w-7xl mx-auto">
-        {/* Left Sidebar - Categories */}
-        <div className="col-span-3">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-7xl mx-auto">
+        {/* Left Sidebar - Categories - Hidden on Mobile */}
+        <div className="hidden lg:block lg:col-span-3">
           <Card className="h-fit">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">Categories</CardTitle>
@@ -592,7 +647,7 @@ const ModernKeymaps: React.FC<ModernKeymapsProps> = ({
         </div>
 
         {/* Right Content - Keymaps */}
-        <div className="col-span-9">
+        <div className="col-span-1 lg:col-span-9">
           <Card>
             <CardHeader>
               <div className="flex items-center gap-3">

@@ -408,9 +408,60 @@ export const ModernSettings: React.FC<ModernSettingsProps> = ({
           </div>
         </div>
         
+        {/* Mobile Category Dropdown */}
+        <div className="block lg:hidden mb-6">
+          <Label className="text-sm font-medium mb-2 block">Category</Label>
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger>
+              <div className="flex items-center gap-2">
+                {selectedCategory === 'nvim-live' ? (
+                  <Wifi className="w-4 h-4" />
+                ) : (
+                  visibleCategories.find(cat => cat.id === selectedCategory)?.icon
+                )}
+                <SelectValue />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              {visibleCategories.map((category) => {
+                const visibleSettingsCount = getVisibleSettings(category.settings).length;
+                
+                return (
+                  <SelectItem key={category.id} value={category.id}>
+                    <div className="flex items-center gap-2">
+                      {category.icon}
+                      <div>
+                        <div className="font-medium">{category.title}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {visibleSettingsCount} setting{visibleSettingsCount !== 1 ? 's' : ''}
+                        </div>
+                      </div>
+                    </div>
+                  </SelectItem>
+                );
+              })}
+              
+              {/* Live Neovim Options Category */}
+              {isNvimConnected && nvimOptions.length > 0 && (
+                <SelectItem value="nvim-live">
+                  <div className="flex items-center gap-2">
+                    <Wifi className="w-4 h-4" />
+                    <div>
+                      <div className="font-medium">Live Neovim Options</div>
+                      <div className="text-xs text-muted-foreground">
+                        {nvimOptions.length} live options
+                      </div>
+                    </div>
+                  </div>
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Categories Sidebar */}
-          <div className="lg:col-span-1">
+          {/* Categories Sidebar - Hidden on Mobile */}
+          <div className="hidden lg:block lg:col-span-1">
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg">Categories</CardTitle>
@@ -474,7 +525,7 @@ export const ModernSettings: React.FC<ModernSettingsProps> = ({
           </div>
           
           {/* Settings Content */}
-          <div className="lg:col-span-3">
+          <div className="col-span-1 lg:col-span-3">
             {selectedCategory === 'nvim-live' ? (
               /* Live Neovim Options */
               <Card>
