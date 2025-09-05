@@ -21,6 +21,7 @@ import { BuyMeCoffeeButton } from '@/components/BuyMeCoffeeButton';
 import { GenerateActions } from '@/components/GenerateActions';
 import { PluginWizardStep } from '@/components/PluginWizardStep';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useTheme } from '@/contexts/ThemeContext';
 import { connectDirectory, writeToConnectedDirectory, hasDirectoryConnection } from '@/utils/dirHandleStore';
 import { detectNvimListener, saveToNvim } from '@/utils/nvimListener';
 import { Code, Palette, Plug, Settings, Download, FileText, Copy, Check, Zap, Wrench, FileUp, Folder, RefreshCw, Wifi, WifiOff, 
@@ -168,6 +169,7 @@ const Index = () => {
   const [nvimListenerConnected, setNvimListenerConnected] = useState(false);
   const [customPlugins, setCustomPlugins] = useState<Array<{id: string; title: string; description: string; icon?: React.ReactNode}>>([]);
   const { toast } = useToast();
+  const { setNvimTheme } = useTheme();
 
   // URL state management
   const updateURL = (step: number, newConfig: NvimConfig) => {
@@ -248,6 +250,11 @@ const Index = () => {
     if (step === STEPS.length - 1) {
       const generated = generateInitLua(newConfig);
       setGeneratedConfig(generated);
+    }
+    
+    // Update web app theme to match selected Neovim theme on load
+    if (newConfig.theme) {
+      setNvimTheme(newConfig.theme);
     }
   };
 
@@ -343,6 +350,11 @@ const Index = () => {
     const newConfig = { ...config, theme: selectedIds[0] || '' };
     setConfig(newConfig);
     updateURL(currentStep, newConfig);
+    
+    // Update web app theme to match selected Neovim theme
+    if (selectedIds[0]) {
+      setNvimTheme(selectedIds[0]);
+    }
   };
 
   const handlePluginChange = (selectedIds: string[]) => {

@@ -68,8 +68,173 @@ All colors MUST be HSL.
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
+  /* Catppuccin Theme */
+  .catppuccin {
+    --background: 236 13% 13%;
+    --foreground: 226 64% 88%;
+
+    --card: 237 16% 23%;
+    --card-foreground: 226 64% 88%;
+
+    --popover: 237 16% 23%;
+    --popover-foreground: 226 64% 88%;
+
+    --primary: 316 73% 69%;
+    --primary-foreground: 0 0% 0%;
+
+    --secondary: 233 12% 39%;
+    --secondary-foreground: 226 64% 88%;
+
+    --muted: 233 12% 39%;
+    --muted-foreground: 227 35% 80%;
+
+    --accent: 267 84% 81%;
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 343 81% 75%;
+    --destructive-foreground: 0 0% 0%;
+
+    --border: 233 12% 39%;
+    --input: 233 12% 39%;
+    --ring: 316 73% 69%;
+
+    --radius: 0.5rem;
+  }
+
+  /* Gruvbox Theme */
+  .gruvbox {
+    --background: 34 25% 20%;
+    --foreground: 43 51% 84%;
+
+    --card: 35 19% 32%;
+    --card-foreground: 43 51% 84%;
+
+    --popover: 35 19% 32%;
+    --popover-foreground: 43 51% 84%;
+
+    --primary: 45 85% 58%;
+    --primary-foreground: 0 0% 0%;
+
+    --secondary: 33 25% 48%;
+    --secondary-foreground: 43 51% 84%;
+
+    --muted: 33 25% 48%;
+    --muted-foreground: 40 38% 72%;
+
+    --accent: 24 89% 67%;
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 4 89% 58%;
+    --destructive-foreground: 0 0% 0%;
+
+    --border: 33 25% 48%;
+    --input: 33 25% 48%;
+    --ring: 45 85% 58%;
+
+    --radius: 0.5rem;
+  }
+
+  /* Tokyo Night Theme */
+  .tokyonight {
+    --background: 230 23% 18%;
+    --foreground: 230 17% 93%;
+
+    --card: 232 23% 23%;
+    --card-foreground: 230 17% 93%;
+
+    --popover: 232 23% 23%;
+    --popover-foreground: 230 17% 93%;
+
+    --primary: 215 100% 78%;
+    --primary-foreground: 0 0% 0%;
+
+    --secondary: 230 14% 41%;
+    --secondary-foreground: 230 17% 93%;
+
+    --muted: 230 14% 41%;
+    --muted-foreground: 230 23% 65%;
+
+    --accent: 292 42% 70%;
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 2 76% 67%;
+    --destructive-foreground: 0 0% 0%;
+
+    --border: 230 14% 41%;
+    --input: 230 14% 41%;
+    --ring: 215 100% 78%;
+
+    --radius: 0.5rem;
+  }
+
+  /* Nord Theme */
+  .nord {
+    --background: 220 16% 22%;
+    --foreground: 218 20% 94%;
+
+    --card: 220 17% 32%;
+    --card-foreground: 218 20% 94%;
+
+    --popover: 220 17% 32%;
+    --popover-foreground: 218 20% 94%;
+
+    --primary: 213 32% 52%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 46%;
+    --secondary-foreground: 218 20% 94%;
+
+    --muted: 220 14% 46%;
+    --muted-foreground: 218 11% 65%;
+
+    --accent: 179 25% 65%;
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 354 42% 56%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 14% 46%;
+    --input: 220 14% 46%;
+    --ring: 213 32% 52%;
+
+    --radius: 0.5rem;
+  }
+
+  /* One Dark Theme */
+  .onedark {
+    --background: 220 13% 18%;
+    --foreground: 220 14% 71%;
+
+    --card: 220 12% 26%;
+    --card-foreground: 220 14% 71%;
+
+    --popover: 220 12% 26%;
+    --popover-foreground: 220 14% 71%;
+
+    --primary: 207 82% 66%;
+    --primary-foreground: 0 0% 0%;
+
+    --secondary: 220 9% 46%;
+    --secondary-foreground: 220 14% 71%;
+
+    --muted: 220 9% 46%;
+    --muted-foreground: 220 9% 55%;
+
+    --accent: 95 38% 62%;
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 355 65% 65%;
+    --destructive-foreground: 0 0% 0%;
+
+    --border: 220 9% 46%;
+    --input: 220 9% 46%;
+    --ring: 207 82% 66%;
+
+    --radius: 0.5rem;
+  }
+
   /* Console Theme Variables */
-  .console-theme {
+  .console {
     --background: 0 0% 0%;
     --foreground: 120 100% 75%;
 
@@ -120,16 +285,16 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 
-  .console-theme body {
+  .console body {
     font-family: 'Courier New', monospace;
   }
   
-  .console-theme .card {
+  .console .card {
     border: 1px solid hsl(var(--border));
     box-shadow: none;
   }
   
-  .console-theme .button {
+  .console .button {
     border: 1px solid hsl(var(--border));
     text-transform: uppercase;
     letter-spacing: 0.05em;
