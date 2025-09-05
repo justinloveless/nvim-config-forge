@@ -37,6 +37,35 @@ All colors MUST be HSL.
     --ring: 142 72% 29%;
 
     --radius: 0.75rem;
+    
+    /* Custom Neovim-themed colors */
+    --nvim-green: 142 76% 36%;
+    --nvim-blue: 217 92% 76%;
+    --nvim-purple: 270 95% 75%;
+    --nvim-orange: 25 95% 53%;
+    --nvim-red: 0 84% 60%;
+    --nvim-yellow: 54 91% 68%;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--nvim-green)), hsl(var(--nvim-blue)));
+    --gradient-card: linear-gradient(145deg, hsl(var(--card)), hsl(240 10% 8%));
+    --gradient-selected: linear-gradient(135deg, hsl(var(--nvim-green) / 0.1), hsl(var(--nvim-blue) / 0.1));
+    
+    /* Shadows */
+    --shadow-card: 0 4px 6px -1px hsl(0 0% 0% / 0.3), 0 2px 4px -1px hsl(0 0% 0% / 0.2);
+    --shadow-selected: 0 0 20px hsl(var(--nvim-green) / 0.3);
+    
+    /* Animation */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   /* Console Theme Variables */
@@ -75,43 +104,6 @@ All colors MUST be HSL.
     --console-green: 120 100% 75%;
     --console-amber: 45 100% 60%;
     --console-cyan: 180 100% 75%;
-  }
-    
-    /* Custom Neovim-themed colors */
-    --nvim-green: 142 76% 36%;
-    --nvim-blue: 217 92% 76%;
-    --nvim-purple: 270 95% 75%;
-    --nvim-orange: 25 95% 53%;
-    --nvim-red: 0 84% 60%;
-    --nvim-yellow: 54 91% 68%;
-    
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--nvim-green)), hsl(var(--nvim-blue)));
-    --gradient-card: linear-gradient(145deg, hsl(var(--card)), hsl(240 10% 8%));
-    --gradient-selected: linear-gradient(135deg, hsl(var(--nvim-green) / 0.1), hsl(var(--nvim-blue) / 0.1));
-    
-    /* Shadows */
-    --shadow-card: 0 4px 6px -1px hsl(0 0% 0% / 0.3), 0 2px 4px -1px hsl(0 0% 0% / 0.2);
-    --shadow-selected: 0 0 20px hsl(var(--nvim-green) / 0.3);
-    
-    /* Animation */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
