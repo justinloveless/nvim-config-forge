@@ -162,7 +162,21 @@ echo "Run 'nvim' to start using your new configuration."
       switch (lang) {
         case 'typescript':
         case 'javascript':
-          return 'npm install -g typescript @vscode/vscode-json-languageserver';
+          return 'npm install -g typescript typescript-language-server vscode-langservers-extracted';
+        case 'json':
+        case 'html':
+        case 'css':
+          return 'npm install -g vscode-langservers-extracted';
+        case 'yaml':
+          return 'npm install -g yaml-language-server';
+        case 'markdown':
+          return 'npm install -g markdown-language-server';
+        case 'sql':
+          return 'npm install -g sql-language-server';
+        case 'dockerfile':
+          return 'npm install -g dockerfile-language-server-nodejs';
+        case 'bash':
+          return 'npm install -g bash-language-server';
         case 'python':
           return 'pip install pylsp black isort';
         case 'rust':
@@ -173,11 +187,11 @@ echo "Run 'nvim' to start using your new configuration."
         case 'cpp':
           return 'winget install LLVM.LLVM';
         case 'csharp':
-          return 'dotnet tool install --global csharp-ls';
+          return 'Push-Location $env:TEMP; dotnet tool install --global csharp-ls; Pop-Location';
         case 'java':
           return 'winget install Microsoft.OpenJDK.17';
         case 'lua':
-          return 'winget install sumneko.lua-language-server';
+          return 'winget install Lua.LuaLanguageServer';
         default:
           return '';
       }
