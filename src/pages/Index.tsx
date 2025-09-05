@@ -23,7 +23,10 @@ import { PluginWizardStep } from '@/components/PluginWizardStep';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { connectDirectory, writeToConnectedDirectory, hasDirectoryConnection } from '@/utils/dirHandleStore';
 import { detectNvimListener, saveToNvim } from '@/utils/nvimListener';
-import { Code, Palette, Plug, Settings, Download, FileText, Copy, Check, Zap, Wrench, FileUp, Folder, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { Code, Palette, Plug, Settings, Download, FileText, Copy, Check, Zap, Wrench, FileUp, Folder, RefreshCw, Wifi, WifiOff, 
+  FileCode, Globe, Database, Cpu, Braces, Terminal, PaintBucket, Hash, FileImage, FileJson, Server, 
+  Boxes, Shield, Coffee, Activity, BarChart3, Brain, Calculator, ChevronRight, FileX, 
+  GitBranch, Package, Cloud, Edit3, Cog } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NvimConfig {
@@ -52,63 +55,63 @@ const STEPS = [
 
 const LANGUAGE_OPTIONS = [
   // Web & Frontend
-  { id: 'typescript', title: 'TypeScript', description: 'Strongly typed JavaScript with advanced tooling', icon: <Code className="w-5 h-5" /> },
-  { id: 'javascript', title: 'JavaScript', description: 'Dynamic scripting language for web development', icon: <Code className="w-5 h-5" /> },
-  { id: 'html', title: 'HTML', description: 'Markup language for web content', icon: <Code className="w-5 h-5" /> },
-  { id: 'css', title: 'CSS', description: 'Styling language for web presentation', icon: <Code className="w-5 h-5" /> },
-  { id: 'vue', title: 'Vue', description: 'Progressive JavaScript framework', icon: <Code className="w-5 h-5" /> },
-  { id: 'svelte', title: 'Svelte', description: 'Compile-time JavaScript framework', icon: <Code className="w-5 h-5" /> },
+  { id: 'typescript', title: 'TypeScript', description: 'Strongly typed JavaScript with advanced tooling', icon: <FileCode className="w-5 h-5 text-blue-400" /> },
+  { id: 'javascript', title: 'JavaScript', description: 'Dynamic scripting language for web development', icon: <FileCode className="w-5 h-5 text-yellow-400" /> },
+  { id: 'html', title: 'HTML', description: 'Markup language for web content', icon: <Globe className="w-5 h-5 text-orange-500" /> },
+  { id: 'css', title: 'CSS', description: 'Styling language for web presentation', icon: <PaintBucket className="w-5 h-5 text-blue-500" /> },
+  { id: 'vue', title: 'Vue', description: 'Progressive JavaScript framework', icon: <Activity className="w-5 h-5 text-green-500" /> },
+  { id: 'svelte', title: 'Svelte', description: 'Compile-time JavaScript framework', icon: <Activity className="w-5 h-5 text-orange-600" /> },
   
   // Backend & Systems
-  { id: 'python', title: 'Python', description: 'Versatile language for scripting and data science', icon: <Code className="w-5 h-5" /> },
-  { id: 'rust', title: 'Rust', description: 'Systems programming language focused on safety', icon: <Code className="w-5 h-5" /> },
-  { id: 'go', title: 'Go', description: 'Simple, fast, and reliable language for servers', icon: <Code className="w-5 h-5" /> },
-  { id: 'c', title: 'C', description: 'Low-level programming language', icon: <Code className="w-5 h-5" /> },
-  { id: 'cpp', title: 'C++', description: 'Object-oriented extension of C', icon: <Code className="w-5 h-5" /> },
-  { id: 'csharp', title: 'C#', description: 'Microsoft\'s object-oriented language', icon: <Code className="w-5 h-5" /> },
-  { id: 'java', title: 'Java', description: 'Enterprise-grade object-oriented language', icon: <Code className="w-5 h-5" /> },
-  { id: 'kotlin', title: 'Kotlin', description: 'Modern JVM language by JetBrains', icon: <Code className="w-5 h-5" /> },
-  { id: 'scala', title: 'Scala', description: 'Functional programming on the JVM', icon: <Code className="w-5 h-5" /> },
-  { id: 'php', title: 'PHP', description: 'Server-side scripting language', icon: <Code className="w-5 h-5" /> },
-  { id: 'ruby', title: 'Ruby', description: 'Dynamic, elegant programming language', icon: <Code className="w-5 h-5" /> },
-  { id: 'dart', title: 'Dart', description: 'Language optimized for Flutter development', icon: <Code className="w-5 h-5" /> },
-  { id: 'swift', title: 'Swift', description: 'Apple\'s programming language for iOS/macOS', icon: <Code className="w-5 h-5" /> },
-  { id: 'zig', title: 'Zig', description: 'Fast, safe systems programming language', icon: <Code className="w-5 h-5" /> },
+  { id: 'python', title: 'Python', description: 'Versatile language for scripting and data science', icon: <FileCode className="w-5 h-5 text-green-400" /> },
+  { id: 'rust', title: 'Rust', description: 'Systems programming language focused on safety', icon: <Shield className="w-5 h-5 text-orange-500" /> },
+  { id: 'go', title: 'Go', description: 'Simple, fast, and reliable language for servers', icon: <Activity className="w-5 h-5 text-cyan-400" /> },
+  { id: 'c', title: 'C', description: 'Low-level programming language', icon: <Cpu className="w-5 h-5 text-blue-600" /> },
+  { id: 'cpp', title: 'C++', description: 'Object-oriented extension of C', icon: <Cpu className="w-5 h-5 text-blue-500" /> },
+  { id: 'csharp', title: 'C#', description: 'Microsoft\'s object-oriented language', icon: <Hash className="w-5 h-5 text-purple-500" /> },
+  { id: 'java', title: 'Java', description: 'Enterprise-grade object-oriented language', icon: <Coffee className="w-5 h-5 text-orange-600" /> },
+  { id: 'kotlin', title: 'Kotlin', description: 'Modern JVM language by JetBrains', icon: <Coffee className="w-5 h-5 text-purple-600" /> },
+  { id: 'scala', title: 'Scala', description: 'Functional programming on the JVM', icon: <Coffee className="w-5 h-5 text-red-500" /> },
+  { id: 'php', title: 'PHP', description: 'Server-side scripting language', icon: <Server className="w-5 h-5 text-purple-400" /> },
+  { id: 'ruby', title: 'Ruby', description: 'Dynamic, elegant programming language', icon: <FileCode className="w-5 h-5 text-red-500" /> },
+  { id: 'dart', title: 'Dart', description: 'Language optimized for Flutter development', icon: <ChevronRight className="w-5 h-5 text-blue-400" /> },
+  { id: 'swift', title: 'Swift', description: 'Apple\'s programming language for iOS/macOS', icon: <Activity className="w-5 h-5 text-orange-500" /> },
+  { id: 'zig', title: 'Zig', description: 'Fast, safe systems programming language', icon: <Zap className="w-5 h-5 text-yellow-500" /> },
   
   // Functional
-  { id: 'haskell', title: 'Haskell', description: 'Pure functional programming language', icon: <Code className="w-5 h-5" /> },
-  { id: 'ocaml', title: 'OCaml', description: 'Industrial-strength functional programming', icon: <Code className="w-5 h-5" /> },
-  { id: 'elixir', title: 'Elixir', description: 'Dynamic, fault-tolerant language on Erlang VM', icon: <Code className="w-5 h-5" /> },
-  { id: 'erlang', title: 'Erlang', description: 'Concurrent, fault-tolerant language', icon: <Code className="w-5 h-5" /> },
-  { id: 'clojure', title: 'Clojure', description: 'Modern Lisp for the JVM', icon: <Code className="w-5 h-5" /> },
-  { id: 'fsharp', title: 'F#', description: 'Functional-first .NET language', icon: <Code className="w-5 h-5" /> },
+  { id: 'haskell', title: 'Haskell', description: 'Pure functional programming language', icon: <Braces className="w-5 h-5 text-purple-600" /> },
+  { id: 'ocaml', title: 'OCaml', description: 'Industrial-strength functional programming', icon: <Braces className="w-5 h-5 text-orange-600" /> },
+  { id: 'elixir', title: 'Elixir', description: 'Dynamic, fault-tolerant language on Erlang VM', icon: <Activity className="w-5 h-5 text-purple-500" /> },
+  { id: 'erlang', title: 'Erlang', description: 'Concurrent, fault-tolerant language', icon: <Activity className="w-5 h-5 text-red-500" /> },
+  { id: 'clojure', title: 'Clojure', description: 'Modern Lisp for the JVM', icon: <Braces className="w-5 h-5 text-green-600" /> },
+  { id: 'fsharp', title: 'F#', description: 'Functional-first .NET language', icon: <Hash className="w-5 h-5 text-blue-500" /> },
   
   // Data & ML
-  { id: 'r', title: 'R', description: 'Statistical computing and graphics', icon: <Code className="w-5 h-5" /> },
-  { id: 'julia', title: 'Julia', description: 'High-performance numerical computing', icon: <Code className="w-5 h-5" /> },
-  { id: 'matlab', title: 'MATLAB', description: 'Technical computing language', icon: <Code className="w-5 h-5" /> },
+  { id: 'r', title: 'R', description: 'Statistical computing and graphics', icon: <BarChart3 className="w-5 h-5 text-blue-600" /> },
+  { id: 'julia', title: 'Julia', description: 'High-performance numerical computing', icon: <Calculator className="w-5 h-5 text-purple-500" /> },
+  { id: 'matlab', title: 'MATLAB', description: 'Technical computing language', icon: <Calculator className="w-5 h-5 text-orange-500" /> },
   
   // Shell & Config
-  { id: 'bash', title: 'Bash', description: 'Unix shell scripting language', icon: <Code className="w-5 h-5" /> },
-  { id: 'fish', title: 'Fish', description: 'User-friendly command line shell', icon: <Code className="w-5 h-5" /> },
-  { id: 'powershell', title: 'PowerShell', description: 'Microsoft\'s task automation framework', icon: <Code className="w-5 h-5" /> },
-  { id: 'lua', title: 'Lua', description: 'Lightweight scripting language (for Neovim config)', icon: <Code className="w-5 h-5" /> },
+  { id: 'bash', title: 'Bash', description: 'Unix shell scripting language', icon: <Terminal className="w-5 h-5 text-green-500" /> },
+  { id: 'fish', title: 'Fish', description: 'User-friendly command line shell', icon: <Terminal className="w-5 h-5 text-blue-400" /> },
+  { id: 'powershell', title: 'PowerShell', description: 'Microsoft\'s task automation framework', icon: <Terminal className="w-5 h-5 text-blue-600" /> },
+  { id: 'lua', title: 'Lua', description: 'Lightweight scripting language (for Neovim config)', icon: <Activity className="w-5 h-5 text-blue-500" /> },
   
   // Config & Markup
-  { id: 'yaml', title: 'YAML', description: 'Human-readable data serialization', icon: <Code className="w-5 h-5" /> },
-  { id: 'json', title: 'JSON', description: 'Lightweight data-interchange format', icon: <Code className="w-5 h-5" /> },
-  { id: 'toml', title: 'TOML', description: 'Configuration file format', icon: <Code className="w-5 h-5" /> },
-  { id: 'xml', title: 'XML', description: 'Extensible markup language', icon: <Code className="w-5 h-5" /> },
-  { id: 'markdown', title: 'Markdown', description: 'Lightweight markup language', icon: <Code className="w-5 h-5" /> },
+  { id: 'yaml', title: 'YAML', description: 'Human-readable data serialization', icon: <FileText className="w-5 h-5 text-red-400" /> },
+  { id: 'json', title: 'JSON', description: 'Lightweight data-interchange format', icon: <FileJson className="w-5 h-5 text-yellow-500" /> },
+  { id: 'toml', title: 'TOML', description: 'Configuration file format', icon: <Cog className="w-5 h-5 text-orange-400" /> },
+  { id: 'xml', title: 'XML', description: 'Extensible markup language', icon: <FileX className="w-5 h-5 text-green-500" /> },
+  { id: 'markdown', title: 'Markdown', description: 'Lightweight markup language', icon: <Edit3 className="w-5 h-5 text-blue-400" /> },
   
   // Database
-  { id: 'sql', title: 'SQL', description: 'Database query language', icon: <Code className="w-5 h-5" /> },
+  { id: 'sql', title: 'SQL', description: 'Database query language', icon: <Database className="w-5 h-5 text-blue-500" /> },
   
   // Other
-  { id: 'nix', title: 'Nix', description: 'Functional package manager language', icon: <Code className="w-5 h-5" /> },
-  { id: 'dockerfile', title: 'Dockerfile', description: 'Container build instructions', icon: <Code className="w-5 h-5" /> },
-  { id: 'terraform', title: 'Terraform', description: 'Infrastructure as code language', icon: <Code className="w-5 h-5" /> },
-  { id: 'vim', title: 'Vimscript', description: 'Vim editor scripting language', icon: <Code className="w-5 h-5" /> },
+  { id: 'nix', title: 'Nix', description: 'Functional package manager language', icon: <Package className="w-5 h-5 text-blue-400" /> },
+  { id: 'dockerfile', title: 'Dockerfile', description: 'Container build instructions', icon: <Boxes className="w-5 h-5 text-blue-500" /> },
+  { id: 'terraform', title: 'Terraform', description: 'Infrastructure as code language', icon: <Cloud className="w-5 h-5 text-purple-500" /> },
+  { id: 'vim', title: 'Vimscript', description: 'Vim editor scripting language', icon: <Edit3 className="w-5 h-5 text-green-500" /> },
 ];
 
 const THEME_OPTIONS = [
