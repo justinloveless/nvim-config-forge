@@ -199,33 +199,33 @@ Write-Host "Installing JetBrains Mono Nerd Font..." -ForegroundColor Yellow
 winget install JetBrains.JetBrainsMono
 
 # Create config directory
-$configDir = "$env:LOCALAPPDATA\\nvim"
-if (!(Test-Path $configDir)) {
-    New-Item -ItemType Directory -Path $configDir -Force
+\\$configDir = "\\$env:LOCALAPPDATA\\nvim"
+if (!(Test-Path \\$configDir)) {
+    New-Item -ItemType Directory -Path \\$configDir -Force
 }
 
 # Backup existing config if it exists
-$initFile = "$configDir\\init.lua"
-if (Test-Path $initFile) {
+\\$initFile = "\\$configDir\\init.lua"
+if (Test-Path \\$initFile) {
     Write-Host "Backing up existing config..." -ForegroundColor Yellow
-    $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-    Move-Item $initFile "$initFile.backup.$timestamp"
+    \\$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+    Move-Item \\$initFile "\\$initFile.backup.\\$timestamp"
 }
 
 # Create the init.lua file
-$configContent = @"
-${generatedConfig}
+\\$configContent = @"
+${generatedConfig.replace(/"/g, '""')}
 "@
 
-Set-Content -Path $initFile -Value $configContent -Encoding UTF8
+Set-Content -Path \\$initFile -Value \\$configContent -Encoding UTF8
 
 # Install language tools
 Write-Host "Installing language tools..." -ForegroundColor Yellow
 ${toolCommands.join('\n')}
 
 Write-Host "✅ Neovim configuration installed successfully!" -ForegroundColor Green
-Write-Host "📝 Don't forget to set your terminal to use 'JetBrains Mono Nerd Font'" -ForegroundColor Yellow
-Write-Host "Run 'nvim' to start using your new configuration." -ForegroundColor Cyan
+Write-Host "📝 Don't forget to set your terminal to use JetBrains Mono Nerd Font" -ForegroundColor Yellow
+Write-Host "Run nvim to start using your new configuration." -ForegroundColor Cyan
 Read-Host "Press Enter to continue..."
 `;
   };
