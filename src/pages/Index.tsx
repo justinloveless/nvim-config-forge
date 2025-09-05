@@ -109,7 +109,7 @@ const Index = () => {
   const [generatedConfig, setGeneratedConfig] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [copiedCommands, setCopiedCommands] = useState<{ [key: string]: boolean }>({});
-  const [showAdvancedFeatures, setShowAdvancedFeatures] = useState(false);
+  
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [hasDirectoryHandle, setHasDirectoryHandle] = useState(false);
   const [nvimListenerConnected, setNvimListenerConnected] = useState(false);
@@ -666,53 +666,6 @@ const Index = () => {
           </div>
 
         </div>
-
-        {/* Advanced Features Toggle - Only show on Generate page */}
-        {currentStep === STEPS.length - 1 && (
-          <div className="mt-8 md:mt-16 pt-8 border-t border-border animate-fade-in">
-            <div className="text-center">
-              <Button
-                onClick={() => setShowAdvancedFeatures(!showAdvancedFeatures)}
-                variant="ghost"
-                className="text-muted-foreground hover:text-foreground transition-all duration-200 hover-scale"
-              >
-                <Wrench className="w-4 h-4 mr-2" />
-                {showAdvancedFeatures ? 'Hide' : 'Show'} Advanced Features
-              </Button>
-            </div>
-            
-            {showAdvancedFeatures && (
-              <Tabs defaultValue="installer" className="mt-8 animate-scale-in">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="installer" className="transition-all duration-200 hover-scale">
-                    <Zap className="w-4 h-4 mr-2" />
-                    Quick Install
-                  </TabsTrigger>
-                  <TabsTrigger value="health" className="transition-all duration-200 hover-scale">
-                    <Settings className="w-4 h-4 mr-2" />
-                    Health Check
-                  </TabsTrigger>
-                  <TabsTrigger value="import" className="transition-all duration-200 hover-scale">
-                    <FileUp className="w-4 h-4 mr-2" />
-                    Import Config
-                  </TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="installer" className="mt-6 animate-fade-in">
-                  <InstallerScripts config={config} generatedConfig={generatedConfig} />
-                </TabsContent>
-                
-                <TabsContent value="health" className="mt-6 animate-fade-in">
-                  <HealthCheckAnalyzer />
-                </TabsContent>
-                
-                <TabsContent value="import" className="mt-6 animate-fade-in">
-                  <ConfigImporter onImportConfig={handleImportConfig} />
-                </TabsContent>
-              </Tabs>
-            )}
-          </div>
-        )}
       </div>
 
       {/* Floating navigation for all screen sizes */}
