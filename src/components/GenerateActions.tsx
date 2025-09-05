@@ -17,7 +17,8 @@ import {
   Stethoscope,
   FileText,
   FolderOpen,
-  Settings
+  Settings,
+  RefreshCw
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
@@ -36,6 +37,7 @@ interface GenerateActionsProps {
   onSaveToNvim: () => void;
   onSaveToDirectory: () => void;
   onImportConfig: (config: any) => void;
+  onTestConnection: () => Promise<void>;
 }
 
 interface ActionCategory {
@@ -88,7 +90,8 @@ export const GenerateActions: React.FC<GenerateActionsProps> = ({
   onCopy,
   onSaveToNvim,
   onSaveToDirectory,
-  onImportConfig
+  onImportConfig,
+  onTestConnection
 }) => {
   const [selectedCategory, setSelectedCategory] = useState('save-nvim');
 
@@ -129,15 +132,26 @@ export const GenerateActions: React.FC<GenerateActionsProps> = ({
 
       {/* Save Options */}
       <div className="grid gap-4">
-        <Button 
-          onClick={onSaveToNvim}
-          disabled={!isNvimConnected}
-          className="w-full h-14 text-base"
-          size="lg"
-        >
-          <Save className="w-5 h-5 mr-2" />
-          Save Configuration to Neovim
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={onSaveToNvim}
+            disabled={!isNvimConnected}
+            className="flex-1 h-14 text-base"
+            size="lg"
+          >
+            <Save className="w-5 h-5 mr-2" />
+            Save Configuration to Neovim
+          </Button>
+          
+          <Button
+            onClick={onTestConnection}
+            variant="outline"
+            size="lg"
+            className="h-14 px-4"
+          >
+            <RefreshCw className="w-5 h-5" />
+          </Button>
+        </div>
 
         {hasDirectoryHandle && (
           <Button 

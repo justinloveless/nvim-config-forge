@@ -610,6 +610,25 @@ const Index = () => {
             onSaveToNvim={handleSaveToNvim}
             onSaveToDirectory={handleSaveToDirectory}
             onImportConfig={handleImportConfig}
+            onTestConnection={async () => {
+              const connected = await detectNvimListener({
+                port: config.nvimListenerPort || 45831,
+                token: config.nvimListenerToken || undefined,
+              });
+              setNvimListenerConnected(connected);
+              if (connected) {
+                toast({
+                  title: "Connection successful!",
+                  description: "Neovim listener is ready to receive updates.",
+                });
+              } else {
+                toast({
+                  title: "Connection failed",
+                  description: "Make sure Neovim is running with the HTTP listener enabled.",
+                  variant: "destructive",
+                });
+              }
+            }}
           />
         );
       default:
