@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -92,6 +92,12 @@ export const GenerateActions: React.FC<GenerateActionsProps> = ({
   };
 
   const [selectedCategory, setSelectedCategory] = useState(getDefaultCategory());
+
+  // Update selected category when setup type changes
+  useEffect(() => {
+    const defaultCategory = getDefaultCategory();
+    setSelectedCategory(defaultCategory);
+  }, [config.setupType]);
 
   const renderSaveToNvim = () => {
     // Check if user is on mobile

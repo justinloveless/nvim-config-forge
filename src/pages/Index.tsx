@@ -190,6 +190,8 @@ const Index = () => {
     if (Object.keys(newConfig.keymaps).length > 0) {
       params.set('keymaps', JSON.stringify(newConfig.keymaps));
     }
+    if (newConfig.setupType) params.set('setupType', newConfig.setupType);
+    if (newConfig.hasConfigListener !== undefined) params.set('hasConfigListener', String(newConfig.hasConfigListener));
     // Persist listener state (no token) for convenience
     if (newConfig.nvimListenerEnabled) {
       params.set('nvimListener', '1');
@@ -211,6 +213,8 @@ const Index = () => {
     const downloadDir = params.get('downloadDir') || '';
     const nvimListenerEnabled = params.get('nvimListener') === '1';
     const nvimListenerPort = parseInt(params.get('nvimPort') || '') || 45831;
+    const setupType = (params.get('setupType') as 'fresh' | 'existing-no-listener' | 'existing-with-listener') || 'fresh';
+    const hasConfigListener = params.get('hasConfigListener') === 'true';
     
     let keymaps = {} as Record<string, string>;
     try {
@@ -249,7 +253,9 @@ const Index = () => {
       keymaps,
       downloadDir,
       nvimListenerEnabled,
-      nvimListenerPort
+      nvimListenerPort,
+      setupType,
+      hasConfigListener
     };
     setCurrentStep(step);
     setConfig(newConfig);
