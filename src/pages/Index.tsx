@@ -18,6 +18,7 @@ import { InstallerScripts } from '@/components/InstallerScripts';
 import { HealthCheckAnalyzer } from '@/components/HealthCheckAnalyzer';
 import { ConfigImporter } from '@/components/ConfigImporter';
 import { BuyMeCoffeeButton } from '@/components/BuyMeCoffeeButton';
+import { GenerateActions } from '@/components/GenerateActions';
 import { connectDirectory, writeToConnectedDirectory, hasDirectoryConnection } from '@/utils/dirHandleStore';
 import { detectNvimListener, saveToNvim } from '@/utils/nvimListener';
 import { Code, Palette, Plug, Settings, Download, FileText, Copy, Check, Zap, Wrench, FileUp, Folder, RefreshCw, Wifi, WifiOff } from 'lucide-react';
@@ -472,6 +473,31 @@ const Index = () => {
     }
   };
 
+  const handleSaveToDirectory = async () => {
+    if (!hasDirectoryHandle) {
+      toast({
+        title: "No directory connected",
+        description: "Please connect a directory first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const success = await writeToConnectedDirectory('init.lua', generatedConfig);
+    if (success) {
+      toast({
+        title: "File saved successfully!",
+        description: "Your init.lua has been saved to the connected directory.",
+      });
+    } else {
+      toast({
+        title: "Save failed",
+        description: "Failed to save to the connected directory.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleApplyPreset = (preset: any) => {
     const presetWithDefaults = { 
       ...preset, 
@@ -573,432 +599,18 @@ const Index = () => {
         );
       case 6:
         return (
-          <div className="space-y-8">
-            <div className="text-center space-y-4">
-              <h2 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                Your Configuration is Ready!
-              </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Here's your generated init.lua file with automatic LSP servers and linters for {config.languages.join(', ')}. 
-                Click download to save it to your computer.
-              </p>
-            </div>
-            
-            {/* Save Options */}
-            <Card className="bg-gradient-card border-border">
-              <CardHeader>
-                <CardTitle className="text-nvim-green flex items-center gap-2">
-                  <Download className="w-5 h-5" />
-                  Save Options
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Neovim Listener Settings */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Label htmlFor="nvim-listener" className="text-sm font-medium">
-                        Neovim Listener
-                      </Label>
-                      <p className="text-xs text-muted-foreground">
-                        Save directly to Neovim when running the HTTP listener
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {config.nvimListenerEnabled && (
-                        nvimListenerConnected ? (
-                          <Wifi className="w-4 h-4 text-nvim-green" />
-                        ) : (
-                          <WifiOff className="w-4 h-4 text-destructive" />
-                        )
-                      )}
-                      <Switch
-                        id="nvim-listener"
-                        checked={config.nvimListenerEnabled || false}
-                        onCheckedChange={(enabled) => {
-                          const newConfig = { 
-                            ...config, 
-                            nvimListenerEnabled: enabled,
-                            nvimListenerPort: enabled ? (config.nvimListenerPort || 45831) : config.nvimListenerPort,
-                          };
-                          setConfig(newConfig);
-                          updateURL(currentStep, newConfig);
-                        }}
-                      />
-                    </div>
-                  </div>
-                  
-                  {config.nvimListenerEnabled && (
-                    <div className="pl-4 border-l-2 border-border space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="nvim-port" className="text-sm font-medium">
-                            Port
-                          </Label>
-                          <Input
-                            id="nvim-port"
-                            type="number"
-                            value={config.nvimListenerPort || 45831}
-                            onChange={(e) => {
-                              const newConfig = { ...config, nvimListenerPort: parseInt(e.target.value) || 45831 };
-                              setConfig(newConfig);
-                              updateURL(currentStep, newConfig);
-                            }}
-                            placeholder="45831"
-                            min="1024"
-                            max="65535"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="nvim-token" className="text-sm font-medium">
-                            Auth Token (optional)
-                          </Label>
-                          <Input
-                            id="nvim-token"
-                            type="text"
-                            value={config.nvimListenerToken || ''}
-                            onChange={(e) => {
-                              const newConfig = { ...config, nvimListenerToken: e.target.value };
-                              setConfig(newConfig);
-                              updateURL(currentStep, newConfig);
-                            }}
-                            placeholder="Optional security token"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between p-3 bg-background/50 rounded-md">
-                        <div className="flex items-center gap-2">
-                          {nvimListenerConnected ? (
-                            <>
-                              <Wifi className="w-4 h-4 text-nvim-green" />
-                              <span className="text-sm font-medium text-nvim-green">Connected</span>
-                            </>
-                          ) : (
-                            <>
-                              <WifiOff className="w-4 h-4 text-destructive" />
-                              <span className="text-sm font-medium text-destructive">Disconnected</span>
-                            </>
-                          )}
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={async () => {
-                            const connected = await detectNvimListener({
-                              port: config.nvimListenerPort || 45831,
-                              token: config.nvimListenerToken || undefined,
-                            });
-                            setNvimListenerConnected(connected);
-                            if (connected) {
-                              toast({
-                                title: "Connection successful!",
-                                description: "Neovim listener is ready to receive updates.",
-                              });
-                            } else {
-                              toast({
-                                title: "Connection failed",
-                                description: "Make sure Neovim is running with the HTTP listener enabled.",
-                                variant: "destructive",
-                              });
-                            }
-                          }}
-                        >
-                          <RefreshCw className="w-3 h-3 mr-1" />
-                          Test
-                        </Button>
-                      </div>
-                      
-                      {!nvimListenerConnected && (
-                        <div className="p-3 bg-muted/50 rounded-md">
-                          <p className="text-xs text-muted-foreground">
-                            <strong>Note:</strong> To use the Neovim listener, add the HTTP server code to your config and restart Neovim. 
-                            The listener code will be included in your generated config when this option is enabled.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Directory Settings */}
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="download-dir" className="text-sm font-medium">
-                      Neovim Config Directory (optional)
-                    </Label>
-                    <Input
-                      id="download-dir"
-                      type="text"
-                      value={config.downloadDir || ''}
-                      onChange={(e) => {
-                        const newConfig = { ...config, downloadDir: e.target.value };
-                        setConfig(newConfig);
-                        updateURL(currentStep, newConfig);
-                      }}
-                      placeholder="e.g., ~/.config/nvim/ or %LOCALAPPDATA%\nvim\"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Set this to your nvim config directory. In modern browsers, you'll be prompted to save directly to this location.
-                    </p>
-                  </div>
-                  
-                  {hasDirectoryHandle && (
-                    <div className="p-3 bg-nvim-green/10 border border-nvim-green/20 rounded-md">
-                      <div className="flex items-center gap-2">
-                        <Folder className="w-4 h-4 text-nvim-green" />
-                        <span className="text-sm font-medium text-nvim-green">Directory connected</span>
-                      </div>
-                      <p className="text-xs text-nvim-green/80 mt-1">
-                        Files will be saved directly to your connected directory.
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Save to Neovim Button */}
-                <div className="pt-4 border-t border-border">
-                  <Button
-                    onClick={handleSaveToNvim}
-                    disabled={!config.nvimListenerEnabled || !nvimListenerConnected}
-                    className="w-full bg-nvim-green hover:bg-nvim-green/90 text-background font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Zap className="w-4 h-4 mr-2" />
-                    Save to Neovim
-                  </Button>
-                  <p className="text-xs text-muted-foreground mt-2 text-center">
-                    Sends configuration directly to your running Neovim instance
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-gradient-card border-border">
-              <CardContent className="p-6">
-                <div className="mb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-nvim-green" />
-                    <span className="font-mono text-sm text-nvim-green">init.lua</span>
-                  </div>
-                  <Button
-                    onClick={handleCopy}
-                    variant="outline"
-                    size="sm"
-                    className="h-8 px-3 border-nvim-green/30 hover:bg-nvim-green/10 hover:border-nvim-green/50"
-                  >
-                    {copied ? (
-                      <>
-                        <Check className="w-4 h-4 mr-1 text-nvim-green" />
-                        <span className="text-nvim-green">Copied!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4 mr-1" />
-                        Copy
-                      </>
-                    )}
-                  </Button>
-                </div>
-                <pre className="text-sm text-foreground overflow-x-auto max-h-96 whitespace-pre-wrap font-mono bg-background/50 p-4 rounded-md border">
-                  {generatedConfig}
-                </pre>
-              </CardContent>
-            </Card>
-
-            <div className="text-center">
-              <Button 
-                onClick={handleDownload}
-                size="lg"
-                className="bg-gradient-primary hover:opacity-90 text-background font-semibold px-8 py-3 mr-4"
-              >
-                <Download className="w-5 h-5 mr-2" />
-                Download init.lua
-              </Button>
-              <Button 
-                onClick={() => {
-                  navigator.clipboard.writeText(window.location.href);
-                  toast({
-                    title: "Link copied!",
-                    description: "Share this link to let others use your exact configuration.",
-                  });
-                }}
-                variant="outline"
-                size="lg" 
-                className="border-nvim-green/30 hover:bg-nvim-green/10 hover:border-nvim-green/50"
-              >
-                <Copy className="w-5 h-5 mr-2" />
-                Share Configuration
-              </Button>
-            </div>
-
-            <div className="mt-8 p-6 bg-card/50 rounded-lg border border-border">
-              <h3 className="font-semibold text-nvim-green mb-3">Installation Instructions:</h3>
-              <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-                <li>Download the init.lua file above</li>
-                <li>Place it in your Neovim config directory:
-                  <ul className="list-disc list-inside mt-1 ml-4 space-y-1">
-                    <li><code className="bg-background/50 px-2 py-1 rounded">~/.config/nvim/</code> on Linux/macOS</li>
-                    <li><code className="bg-background/50 px-2 py-1 rounded">%LOCALAPPDATA%\nvim\</code> on Windows</li>
-                  </ul>
-                </li>
-                <li>Start Neovim - plugins will be automatically installed on first launch</li>
-                <li>Enjoy your configured Neovim setup!</li>
-              </ol>
-              
-              {config.languages.length > 0 && (
-                <div className="mt-6">
-                  <h4 className="font-semibold text-nvim-green mb-3">Required Tools for Language Support:</h4>
-                  
-                  <Tabs defaultValue="macos" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 mb-4">
-                      <TabsTrigger value="macos">macOS</TabsTrigger>
-                      <TabsTrigger value="linux">Linux</TabsTrigger>
-                      <TabsTrigger value="windows">Windows</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="macos" className="space-y-4">
-                      {config.languages.includes('typescript') || config.languages.includes('javascript') ? (
-                        <div>
-                          <p className="font-medium text-foreground mb-2">TypeScript/JavaScript:</p>
-                          <CodeBlock command="npm install -g prettier" id="ts-macos" />
-                        </div>
-                      ) : null}
-                      
-                      {config.languages.includes('python') && (
-                        <div>
-                          <p className="font-medium text-foreground mb-2">Python:</p>
-                          <CodeBlock command="pip install black" id="python-macos" />
-                        </div>
-                      )}
-                      
-                      {config.languages.includes('go') && (
-                        <div>
-                          <p className="font-medium text-foreground mb-2">Go:</p>
-                          <CodeBlock command="go install mvdan.cc/gofumpt@latest" id="go-macos" />
-                        </div>
-                      )}
-                      
-                      {(config.languages.includes('c') || config.languages.includes('cpp')) && (
-                        <div>
-                          <p className="font-medium text-foreground mb-2">C/C++:</p>
-                          <CodeBlock command="brew install clang-format" id="c-macos" />
-                        </div>
-                      )}
-                      
-                      {config.languages.includes('rust') && (
-                        <div>
-                          <p className="font-medium text-foreground mb-2">Rust:</p>
-                          <CodeBlock command="rustup component add rustfmt" id="rust-macos" />
-                        </div>
-                      )}
-                      
-                      {config.languages.includes('lua') && (
-                        <div>
-                          <p className="font-medium text-foreground mb-2">Lua:</p>
-                          <CodeBlock command="cargo install stylua" id="lua-macos" />
-                        </div>
-                      )}
-                    </TabsContent>
-                    
-                    <TabsContent value="linux" className="space-y-4">
-                      {config.languages.includes('typescript') || config.languages.includes('javascript') ? (
-                        <div>
-                          <p className="font-medium text-foreground mb-2">TypeScript/JavaScript:</p>
-                          <CodeBlock command="npm install -g prettier" id="ts-linux" />
-                        </div>
-                      ) : null}
-                      
-                      {config.languages.includes('python') && (
-                        <div>
-                          <p className="font-medium text-foreground mb-2">Python:</p>
-                          <CodeBlock command="pip install black" id="python-linux" />
-                        </div>
-                      )}
-                      
-                      {config.languages.includes('go') && (
-                        <div>
-                          <p className="font-medium text-foreground mb-2">Go:</p>
-                          <CodeBlock command="go install mvdan.cc/gofumpt@latest" id="go-linux" />
-                        </div>
-                      )}
-                      
-                      {(config.languages.includes('c') || config.languages.includes('cpp')) && (
-                        <div>
-                          <p className="font-medium text-foreground mb-2">C/C++:</p>
-                          <CodeBlock command="sudo apt install clang-format" id="c-linux" />
-                        </div>
-                      )}
-                      
-                      {config.languages.includes('rust') && (
-                        <div>
-                          <p className="font-medium text-foreground mb-2">Rust:</p>
-                          <CodeBlock command="rustup component add rustfmt" id="rust-linux" />
-                        </div>
-                      )}
-                      
-                      {config.languages.includes('lua') && (
-                        <div>
-                          <p className="font-medium text-foreground mb-2">Lua:</p>
-                          <CodeBlock command="cargo install stylua" id="lua-linux" />
-                        </div>
-                      )}
-                    </TabsContent>
-                    
-                    <TabsContent value="windows" className="space-y-4">
-                      {config.languages.includes('typescript') || config.languages.includes('javascript') ? (
-                        <div>
-                          <p className="font-medium text-foreground mb-2">TypeScript/JavaScript:</p>
-                          <CodeBlock command="npm install -g prettier" id="ts-windows" />
-                        </div>
-                      ) : null}
-                      
-                      {config.languages.includes('python') && (
-                        <div>
-                          <p className="font-medium text-foreground mb-2">Python:</p>
-                          <CodeBlock command="pip install black" id="python-windows" />
-                        </div>
-                      )}
-                      
-                      {config.languages.includes('go') && (
-                        <div>
-                          <p className="font-medium text-foreground mb-2">Go:</p>
-                          <CodeBlock command="go install mvdan.cc/gofumpt@latest" id="go-windows" />
-                        </div>
-                      )}
-                      
-                      {(config.languages.includes('c') || config.languages.includes('cpp')) && (
-                        <div>
-                          <p className="font-medium text-foreground mb-2">C/C++:</p>
-                          <CodeBlock command="choco install llvm" id="c-windows" />
-                        </div>
-                      )}
-                      
-                      {config.languages.includes('rust') && (
-                        <div>
-                          <p className="font-medium text-foreground mb-2">Rust:</p>
-                          <CodeBlock command="rustup component add rustfmt" id="rust-windows" />
-                        </div>
-                      )}
-                      
-                      {config.languages.includes('lua') && (
-                        <div>
-                          <p className="font-medium text-foreground mb-2">Lua:</p>
-                          <CodeBlock command="cargo install stylua" id="lua-windows" />
-                        </div>
-                      )}
-                    </TabsContent>
-                  </Tabs>
-                  
-                  <div className="mt-4 p-3 bg-nvim-green/10 border border-nvim-green/20 rounded">
-                    <p className="text-sm text-nvim-green">
-                      <strong>💡 Tip:</strong> Install these tools to enable automatic code formatting. 
-                      Without them, you may see error messages when Neovim tries to format your code.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          <GenerateActions
+            config={config}
+            generatedConfig={generatedConfig}
+            copied={copied}
+            isNvimConnected={nvimListenerConnected}
+            hasDirectoryHandle={hasDirectoryHandle}
+            onDownload={handleDownload}
+            onCopy={handleCopy}
+            onSaveToNvim={handleSaveToNvim}
+            onSaveToDirectory={handleSaveToDirectory}
+            onImportConfig={handleImportConfig}
+          />
         );
       default:
         return null;
