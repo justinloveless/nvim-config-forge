@@ -27,13 +27,16 @@ export const saveToNvim = async (
   config: NvimListenerConfig
 ): Promise<NvimSaveResponse> => {
   try {
+    const formData = new FormData();
+    const file = new Blob([content], { type: 'text/plain' });
+    formData.append('file', file, filename);
+
     const response = await fetch(`http://127.0.0.1:${config.port}/save`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         ...(config.token ? { 'Authorization': `Bearer ${config.token}` } : {}),
       },
-      body: JSON.stringify({ filename, content }),
+      body: formData,
     });
 
     if (!response.ok) {
@@ -60,7 +63,7 @@ export const saveToNvim = async (
 
 export const generateNvimListenerCode = (port: number = 45831, token?: string): string => {
   return `
--- Neovim HTTP listener for seamless config updates (with chunked body support)
+-- Neovim HTTP listener for seamless config updates (with multipart form data support)
 local function setup_config_listener()
   local uv = vim.loop
   local port = ${port}
@@ -75,11 +78,11 @@ local function setup_config_listener()
     headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
     headers["Connection"] = "close"
 
-    local header_str = "HTTP/1.1 " .. status .. "\r\n"
+    local header_str = "HTTP/1.1 " .. status .. "\\r\\n"
     for k, v in pairs(headers) do
-      header_str = header_str .. k .. ": " .. v .. "\r\n"
+      header_str = header_str .. k .. ": " .. v .. "\\r\\n"
     end
-    header_str = header_str .. "\r\n"
+    header_str = header_str .. "\\r\\n"
 
     client:write(header_str .. body)
     client:close()
@@ -87,13 +90,69 @@ local function setup_config_listener()
 
   local function parse_headers(header_str)
     local headers = {}
-    for line in header_str:gmatch("[^\r\n]+") do
+    for line in header_str:gmatch("[^\\r\\n]+") do
       local key, value = line:match("([^:]+):%s*(.+)")
       if key and value then
         headers[key:lower()] = value
       end
     end
     return headers
+  end
+
+  local function parse_multipart(body, boundary)
+    local parts = {}
+    local boundary_pattern = "--" .. boundary
+    local end_boundary = boundary_pattern .. "--"
+    
+    -- Split by boundary
+    local sections = {}
+    local current_pos = 1
+    while true do
+      local start_pos = body:find(boundary_pattern, current_pos, true)
+      if not start_pos then break end
+      
+      local next_pos = body:find(boundary_pattern, start_pos + #boundary_pattern, true)
+      if not next_pos then
+        next_pos = body:find(end_boundary, start_pos + #boundary_pattern, true)
+        if not next_pos then break end
+      end
+      
+      local section = body:sub(start_pos + #boundary_pattern, next_pos - 1)
+      if section:match("^\\r\\n") then
+        section = section:sub(3)  -- Remove leading CRLF
+      end
+      if section ~= "" and not section:match("^--") then
+        table.insert(sections, section)
+      end
+      
+      current_pos = next_pos
+    end
+    
+    -- Parse each section
+    for _, section in ipairs(sections) do
+      local header_end = section:find("\\r\\n\\r\\n", 1, true)
+      if header_end then
+        local headers_str = section:sub(1, header_end - 1)
+        local content = section:sub(header_end + 4)
+        
+        -- Remove trailing CRLF if present
+        if content:sub(-2) == "\\r\\n" then
+          content = content:sub(1, -3)
+        end
+        
+        local disposition = headers_str:match('Content%-Disposition:%s*form%-data;%s*name="([^"]+)"')
+        local filename = headers_str:match('filename="([^"]+)"')
+        
+        if disposition and filename then
+          parts[disposition] = {
+            filename = filename,
+            content = content
+          }
+        end
+      end
+    end
+    
+    return parts
   end
 
   local server = uv.new_tcp()
@@ -121,16 +180,16 @@ local function setup_config_listener()
       buffer = buffer .. chunk
 
       -- Ensure we have full headers first
-      local header_end = buffer:find("\r\n\r\n", 1, true)
+      local header_end = buffer:find("\\r\\n\\r\\n", 1, true)
       if not header_end then
         return
       end
 
-      local request_line = buffer:match("^(.-)\r\n") or ""
+      local request_line = buffer:match("^(.-)\\r\\n") or ""
       local method, path = request_line:match("(%S+)%s+(%S+)")
 
       -- Extract headers block
-      local first_crlf = buffer:find("\r\n", 1, true)
+      local first_crlf = buffer:find("\\r\\n", 1, true)
       local headers_str = ""
       if first_crlf then
         headers_str = buffer:sub(first_crlf + 2, header_end - 1)
@@ -142,7 +201,7 @@ local function setup_config_listener()
       local body_start = header_end + 4
       local available = #buffer - body_start + 1
 
-      -- For GET/OPTIONS or empty body, we can process immediately
+      -- For GET/OPTIONS or when we have the full body
       if (method == "GET" or method == "OPTIONS") or content_length == 0 or available >= content_length then
         local body = ""
         if content_length > 0 and available >= content_length then
@@ -169,22 +228,33 @@ local function setup_config_listener()
           respond(client, "200 OK", { ["Content-Type"] = "application/json" },
                   '{"status": "ok", "message": "Neovim listener active"}')
         elseif method == "POST" and path == "/save" then
-          local ok, json = pcall(vim.json.decode, body)
-          if not ok or type(json) ~= "table" or not json.filename or not json.content then
+          local content_type = headers["content-type"] or ""
+          local boundary = content_type:match("boundary=([^;]+)")
+          
+          if not boundary then
             respond(client, "400 Bad Request", { ["Content-Type"] = "application/json" },
-                    '{"error": "Invalid JSON or missing filename/content"}')
+                    '{"error": "Missing multipart boundary"}')
+            return
+          end
+          
+          local parts = parse_multipart(body, boundary)
+          local file_part = parts["file"]
+          
+          if not file_part or not file_part.filename or not file_part.content then
+            respond(client, "400 Bad Request", { ["Content-Type"] = "application/json" },
+                    '{"error": "Missing file in multipart data"}')
             return
           end
 
           local config_dir = vim.fn.stdpath("config")
-          local file_path = config_dir .. "/" .. json.filename
+          local file_path = config_dir .. "/" .. file_part.filename
 
           local file = io.open(file_path, "w")
           if file then
-            file:write(json.content)
+            file:write(file_part.content)
             file:close()
 
-            if json.filename == "init.lua" then
+            if file_part.filename == "init.lua" then
               vim.schedule(function()
                 vim.notify("Config updated from web interface!", vim.log.levels.INFO)
                 vim.cmd("source " .. file_path)
