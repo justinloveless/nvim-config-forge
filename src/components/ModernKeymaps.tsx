@@ -30,6 +30,8 @@ interface KeymapAction {
   id: string;
   name: string;
   description: string;
+  mode: 'n' | 'i' | 'v' | 'c' | 't' | 'x'; // n=normal, i=insert, v=visual, c=command, t=terminal, x=visual block
+  modeLabel: string;
 }
 
 interface KeymapSection {
@@ -55,12 +57,12 @@ const KEYMAP_SECTIONS: KeymapSection[] = [
     description: 'Core Neovim keybindings for common operations',
     icon: <Keyboard className="w-5 h-5" />,
     actions: [
-      { id: 'command_mode', name: 'Command Mode', description: 'Enter command mode (map ; to :)' },
-      { id: 'save_file', name: 'Save File', description: 'Save current file' },
-      { id: 'quit', name: 'Quit', description: 'Quit Neovim' },
-      { id: 'select_all', name: 'Select All', description: 'Select all text' },
-      { id: 'search_replace', name: 'Search & Replace', description: 'Search and replace' },
-      { id: 'open_config_web', name: 'Open Config Web App', description: 'Open this configuration app in browser with current settings' },
+      { id: 'command_mode', name: 'Command Mode', description: 'Enter command mode (map ; to :)', mode: 'n', modeLabel: 'Normal' },
+      { id: 'save_file', name: 'Save File', description: 'Save current file', mode: 'n', modeLabel: 'Normal' },
+      { id: 'quit', name: 'Quit', description: 'Quit Neovim', mode: 'n', modeLabel: 'Normal' },
+      { id: 'select_all', name: 'Select All', description: 'Select all text', mode: 'n', modeLabel: 'Normal' },
+      { id: 'search_replace', name: 'Search & Replace', description: 'Search and replace', mode: 'n', modeLabel: 'Normal' },
+      { id: 'open_config_web', name: 'Open Config Web App', description: 'Open this configuration app in browser with current settings', mode: 'n', modeLabel: 'Normal' },
     ]
   },
   {
@@ -69,12 +71,12 @@ const KEYMAP_SECTIONS: KeymapSection[] = [
     description: 'Window, buffer, and navigation controls',
     icon: <Terminal className="w-5 h-5" />,
     actions: [
-      { id: 'split_horizontal', name: 'Split Horizontal', description: 'Split window horizontally' },
-      { id: 'split_vertical', name: 'Split Vertical', description: 'Split window vertically' },
-      { id: 'buffer_next', name: 'Next Buffer', description: 'Switch to next buffer' },
-      { id: 'buffer_prev', name: 'Previous Buffer', description: 'Switch to previous buffer' },
-      { id: 'buffer_close', name: 'Close Buffer', description: 'Close current buffer' },
-      { id: 'terminal_toggle', name: 'Terminal', description: 'Open terminal' },
+      { id: 'split_horizontal', name: 'Split Horizontal', description: 'Split window horizontally', mode: 'n', modeLabel: 'Normal' },
+      { id: 'split_vertical', name: 'Split Vertical', description: 'Split window vertically', mode: 'n', modeLabel: 'Normal' },
+      { id: 'buffer_next', name: 'Next Buffer', description: 'Switch to next buffer', mode: 'n', modeLabel: 'Normal' },
+      { id: 'buffer_prev', name: 'Previous Buffer', description: 'Switch to previous buffer', mode: 'n', modeLabel: 'Normal' },
+      { id: 'buffer_close', name: 'Close Buffer', description: 'Close current buffer', mode: 'n', modeLabel: 'Normal' },
+      { id: 'terminal_toggle', name: 'Terminal', description: 'Open terminal', mode: 'n', modeLabel: 'Normal' },
     ]
   },
   {
@@ -83,8 +85,8 @@ const KEYMAP_SECTIONS: KeymapSection[] = [
     description: 'Visual and display-related toggles',
     icon: <Wrench className="w-5 h-5" />,
     actions: [
-      { id: 'toggle_wrap', name: 'Toggle Wrap', description: 'Toggle line wrapping' },
-      { id: 'toggle_numbers', name: 'Toggle Numbers', description: 'Toggle line numbers' },
+      { id: 'toggle_wrap', name: 'Toggle Wrap', description: 'Toggle line wrapping', mode: 'n', modeLabel: 'Normal' },
+      { id: 'toggle_numbers', name: 'Toggle Numbers', description: 'Toggle line numbers', mode: 'n', modeLabel: 'Normal' },
     ]
   },
   {
@@ -93,12 +95,12 @@ const KEYMAP_SECTIONS: KeymapSection[] = [
     description: 'Terminal mode navigation and escape sequences',
     icon: <Terminal className="w-5 h-5" />,
     actions: [
-      { id: 'terminal_escape', name: 'Exit Terminal Mode', description: 'Return to normal mode from terminal' },
-      { id: 'terminal_escape_alt', name: 'Alt Exit Terminal', description: 'Alternative way to exit terminal mode' },
-      { id: 'terminal_nav_left', name: 'Navigate Left', description: 'Move to window on the left from terminal' },
-      { id: 'terminal_nav_right', name: 'Navigate Right', description: 'Move to window on the right from terminal' },
-      { id: 'terminal_nav_up', name: 'Navigate Up', description: 'Move to window above from terminal' },
-      { id: 'terminal_nav_down', name: 'Navigate Down', description: 'Move to window below from terminal' },
+      { id: 'terminal_escape', name: 'Exit Terminal Mode', description: 'Return to normal mode from terminal', mode: 't', modeLabel: 'Terminal' },
+      { id: 'terminal_escape_alt', name: 'Alt Exit Terminal', description: 'Alternative way to exit terminal mode', mode: 't', modeLabel: 'Terminal' },
+      { id: 'terminal_nav_left', name: 'Navigate Left', description: 'Move to window on the left from terminal', mode: 't', modeLabel: 'Terminal' },
+      { id: 'terminal_nav_right', name: 'Navigate Right', description: 'Move to window on the right from terminal', mode: 't', modeLabel: 'Terminal' },
+      { id: 'terminal_nav_up', name: 'Navigate Up', description: 'Move to window above from terminal', mode: 't', modeLabel: 'Terminal' },
+      { id: 'terminal_nav_down', name: 'Navigate Down', description: 'Move to window below from terminal', mode: 't', modeLabel: 'Terminal' },
     ]
   }
 ];
@@ -111,9 +113,9 @@ const PLUGIN_SECTIONS: { [key: string]: KeymapSection } = {
     icon: <FolderTree className="w-5 h-5" />,
     pluginId: 'nvim-tree',
     actions: [
-      { id: 'nvim_tree_toggle', name: 'Toggle File Tree', description: 'Open/close file explorer' },
-      { id: 'nvim_tree_focus', name: 'Focus File Tree', description: 'Focus on file explorer' },
-      { id: 'nvim_tree_find_file', name: 'Find Current File', description: 'Find current file in tree' },
+      { id: 'nvim_tree_toggle', name: 'Toggle File Tree', description: 'Open/close file explorer', mode: 'n', modeLabel: 'Normal' },
+      { id: 'nvim_tree_focus', name: 'Focus File Tree', description: 'Focus on file explorer', mode: 'n', modeLabel: 'Normal' },
+      { id: 'nvim_tree_find_file', name: 'Find Current File', description: 'Find current file in tree', mode: 'n', modeLabel: 'Normal' },
     ]
   },
   'telescope': {
@@ -123,11 +125,11 @@ const PLUGIN_SECTIONS: { [key: string]: KeymapSection } = {
     icon: <SearchIcon className="w-5 h-5" />,
     pluginId: 'telescope',
     actions: [
-      { id: 'telescope_find_files', name: 'Find Files', description: 'Search and open files' },
-      { id: 'telescope_live_grep', name: 'Live Grep', description: 'Search text in files' },
-      { id: 'telescope_buffers', name: 'Buffers', description: 'List and switch buffers' },
-      { id: 'telescope_help_tags', name: 'Help Tags', description: 'Search help documentation' },
-      { id: 'telescope_git_files', name: 'Git Files', description: 'Search git-tracked files' },
+      { id: 'telescope_find_files', name: 'Find Files', description: 'Search and open files', mode: 'n', modeLabel: 'Normal' },
+      { id: 'telescope_live_grep', name: 'Live Grep', description: 'Search text in files', mode: 'n', modeLabel: 'Normal' },
+      { id: 'telescope_buffers', name: 'Buffers', description: 'List and switch buffers', mode: 'n', modeLabel: 'Normal' },
+      { id: 'telescope_help_tags', name: 'Help Tags', description: 'Search help documentation', mode: 'n', modeLabel: 'Normal' },
+      { id: 'telescope_git_files', name: 'Git Files', description: 'Search git-tracked files', mode: 'n', modeLabel: 'Normal' },
     ]
   },
   'tabbufline': {
@@ -137,12 +139,12 @@ const PLUGIN_SECTIONS: { [key: string]: KeymapSection } = {
     icon: <Terminal className="w-5 h-5" />,
     pluginId: 'tabbufline',
     actions: [
-      { id: 'tabbufline_next_tab', name: 'Next Tab', description: 'Switch to next tab' },
-      { id: 'tabbufline_prev_tab', name: 'Previous Tab', description: 'Switch to previous tab' },
-      { id: 'tabbufline_close_tab', name: 'Close Tab', description: 'Close current tab' },
-      { id: 'tabbufline_next_buffer', name: 'Next Buffer', description: 'Switch to next buffer in tab' },
-      { id: 'tabbufline_prev_buffer', name: 'Previous Buffer', description: 'Switch to previous buffer in tab' },
-      { id: 'tabbufline_close_buffer', name: 'Close Buffer', description: 'Close current buffer' },
+      { id: 'tabbufline_next_tab', name: 'Next Tab', description: 'Switch to next tab', mode: 'n', modeLabel: 'Normal' },
+      { id: 'tabbufline_prev_tab', name: 'Previous Tab', description: 'Switch to previous tab', mode: 'n', modeLabel: 'Normal' },
+      { id: 'tabbufline_close_tab', name: 'Close Tab', description: 'Close current tab', mode: 'n', modeLabel: 'Normal' },
+      { id: 'tabbufline_next_buffer', name: 'Next Buffer', description: 'Switch to next buffer in tab', mode: 'n', modeLabel: 'Normal' },
+      { id: 'tabbufline_prev_buffer', name: 'Previous Buffer', description: 'Switch to previous buffer in tab', mode: 'n', modeLabel: 'Normal' },
+      { id: 'tabbufline_close_buffer', name: 'Close Buffer', description: 'Close current buffer', mode: 'n', modeLabel: 'Normal' },
     ]
   },
   'nvim-dap': {
@@ -152,11 +154,11 @@ const PLUGIN_SECTIONS: { [key: string]: KeymapSection } = {
     icon: <Terminal className="w-5 h-5" />,
     pluginId: 'nvim-dap',
     actions: [
-      { id: 'dap_toggle_breakpoint', name: 'Toggle Breakpoint', description: 'Set/remove breakpoint' },
-      { id: 'dap_continue', name: 'Continue', description: 'Continue debugging' },
-      { id: 'dap_step_over', name: 'Step Over', description: 'Step over line' },
-      { id: 'dap_step_into', name: 'Step Into', description: 'Step into function' },
-      { id: 'dap_step_out', name: 'Step Out', description: 'Step out of function' },
+      { id: 'dap_toggle_breakpoint', name: 'Toggle Breakpoint', description: 'Set/remove breakpoint', mode: 'n', modeLabel: 'Normal' },
+      { id: 'dap_continue', name: 'Continue', description: 'Continue debugging', mode: 'n', modeLabel: 'Normal' },
+      { id: 'dap_step_over', name: 'Step Over', description: 'Step over line', mode: 'n', modeLabel: 'Normal' },
+      { id: 'dap_step_into', name: 'Step Into', description: 'Step into function', mode: 'n', modeLabel: 'Normal' },
+      { id: 'dap_step_out', name: 'Step Out', description: 'Step out of function', mode: 'n', modeLabel: 'Normal' },
     ]
   },
   'gitsigns': {
@@ -166,11 +168,11 @@ const PLUGIN_SECTIONS: { [key: string]: KeymapSection } = {
     icon: <GitBranch className="w-5 h-5" />,
     pluginId: 'gitsigns',
     actions: [
-      { id: 'gitsigns_next_hunk', name: 'Next Hunk', description: 'Go to next git change' },
-      { id: 'gitsigns_prev_hunk', name: 'Previous Hunk', description: 'Go to previous git change' },
-      { id: 'gitsigns_stage_hunk', name: 'Stage Hunk', description: 'Stage current change' },
-      { id: 'gitsigns_reset_hunk', name: 'Reset Hunk', description: 'Reset current change' },
-      { id: 'gitsigns_preview_hunk', name: 'Preview Hunk', description: 'Preview git change' },
+      { id: 'gitsigns_next_hunk', name: 'Next Hunk', description: 'Go to next git change', mode: 'n', modeLabel: 'Normal' },
+      { id: 'gitsigns_prev_hunk', name: 'Previous Hunk', description: 'Go to previous git change', mode: 'n', modeLabel: 'Normal' },
+      { id: 'gitsigns_stage_hunk', name: 'Stage Hunk', description: 'Stage current change', mode: 'n', modeLabel: 'Normal' },
+      { id: 'gitsigns_reset_hunk', name: 'Reset Hunk', description: 'Reset current change', mode: 'n', modeLabel: 'Normal' },
+      { id: 'gitsigns_preview_hunk', name: 'Preview Hunk', description: 'Preview git change', mode: 'n', modeLabel: 'Normal' },
     ]
   },
   'which-key': {
@@ -180,7 +182,7 @@ const PLUGIN_SECTIONS: { [key: string]: KeymapSection } = {
     icon: <Wrench className="w-5 h-5" />,
     pluginId: 'which-key',
     actions: [
-      { id: 'which_key_show', name: 'Show Keybindings', description: 'Display available keybindings' },
+      { id: 'which_key_show', name: 'Show Keybindings', description: 'Display available keybindings', mode: 'n', modeLabel: 'Normal' },
     ]
   }
 };
@@ -278,33 +280,34 @@ const ModernKeymaps: React.FC<ModernKeymapsProps> = ({
     return sections;
   }, [selectedPlugins]);
 
-  // Detect conflicting keymaps
+  // Detect conflicting keymaps (considering modes)
   const conflictingKeymaps = useMemo(() => {
-    const conflicts: { [keymap: string]: string[] } = {};
-    const allKeymaps: { [actionId: string]: string } = {};
+    const conflicts: { [keymapWithMode: string]: string[] } = {};
+    const allKeymaps: { [actionId: string]: { keymap: string; mode: string } } = {};
 
-    // Collect all keymaps
+    // Collect all keymaps with their modes
     visibleSections.forEach(section => {
       section.actions.forEach(action => {
         const keymap = keymaps[action.id] || DEFAULT_KEYMAPS[action.id] || '';
         if (keymap.trim()) {
-          allKeymaps[action.id] = keymap;
+          allKeymaps[action.id] = { keymap, mode: action.mode };
         }
       });
     });
 
-    // Find conflicts
-    Object.entries(allKeymaps).forEach(([actionId1, keymap1]) => {
-      Object.entries(allKeymaps).forEach(([actionId2, keymap2]) => {
-        if (actionId1 !== actionId2 && keymap1 === keymap2) {
-          if (!conflicts[keymap1]) {
-            conflicts[keymap1] = [];
+    // Find conflicts (same keymap in same mode)
+    Object.entries(allKeymaps).forEach(([actionId1, { keymap: keymap1, mode: mode1 }]) => {
+      Object.entries(allKeymaps).forEach(([actionId2, { keymap: keymap2, mode: mode2 }]) => {
+        if (actionId1 !== actionId2 && keymap1 === keymap2 && mode1 === mode2) {
+          const conflictKey = `${keymap1}:${mode1}`;
+          if (!conflicts[conflictKey]) {
+            conflicts[conflictKey] = [];
           }
-          if (!conflicts[keymap1].includes(actionId1)) {
-            conflicts[keymap1].push(actionId1);
+          if (!conflicts[conflictKey].includes(actionId1)) {
+            conflicts[conflictKey].push(actionId1);
           }
-          if (!conflicts[keymap1].includes(actionId2)) {
-            conflicts[keymap1].push(actionId2);
+          if (!conflicts[conflictKey].includes(actionId2)) {
+            conflicts[conflictKey].push(actionId2);
           }
         }
       });
@@ -316,7 +319,28 @@ const ModernKeymaps: React.FC<ModernKeymapsProps> = ({
   // Check if an action has conflicting keymaps
   const hasConflict = (actionId: string): boolean => {
     const keymap = keymaps[actionId] || DEFAULT_KEYMAPS[actionId] || '';
-    return conflictingKeymaps[keymap] && conflictingKeymaps[keymap].length > 1;
+    const action = [...KEYMAP_SECTIONS, ...Object.values(PLUGIN_SECTIONS)]
+      .flatMap(s => s.actions)
+      .find(a => a.id === actionId);
+    if (!action) return false;
+    
+    const conflictKey = `${keymap}:${action.mode}`;
+    return conflictingKeymaps[conflictKey] && conflictingKeymaps[conflictKey].length > 1;
+  };
+
+  // Group actions by mode
+  const getActionsGroupedByMode = (actions: KeymapAction[]) => {
+    const visibleActions = getVisibleActions(actions);
+    const grouped = visibleActions.reduce((groups, action) => {
+      const mode = action.mode;
+      if (!groups[mode]) {
+        groups[mode] = [];
+      }
+      groups[mode].push(action);
+      return groups;
+    }, {} as Record<string, KeymapAction[]>);
+    
+    return grouped;
   };
 
   // Filter actions based on search query
@@ -328,6 +352,27 @@ const ModernKeymaps: React.FC<ModernKeymapsProps> = ({
       action.name.toLowerCase().includes(query) ||
       action.description.toLowerCase().includes(query) ||
       action.id.toLowerCase().includes(query)
+    );
+  };
+
+  // Get mode indicator component
+  const getModeIndicator = (mode: string, modeLabel: string) => {
+    const modeColors = {
+      'n': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+      'i': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+      'v': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+      'x': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+      'c': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+      't': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+    };
+    
+    return (
+      <Badge 
+        variant="secondary" 
+        className={cn("text-xs font-mono", modeColors[mode as keyof typeof modeColors] || 'bg-gray-100 text-gray-800')}
+      >
+        {modeLabel}
+      </Badge>
     );
   };
 
@@ -452,25 +497,35 @@ const ModernKeymaps: React.FC<ModernKeymapsProps> = ({
             <div className="space-y-2">
               <div className="font-medium">Key binding conflicts detected</div>
               <div className="text-sm space-y-1">
-                {Object.entries(conflictingKeymaps).map(([keymap, actions]) => (
-                  <div key={keymap}>
-                    <span className="font-mono bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.5 rounded text-xs">
-                      {keymap}
-                    </span>
-                    {' is used by: '}
-                    {actions.map((actionId, index) => {
-                      const action = [...KEYMAP_SECTIONS, ...Object.values(PLUGIN_SECTIONS)]
-                        .flatMap(s => s.actions)
-                        .find(a => a.id === actionId);
-                      return (
-                        <span key={actionId}>
-                          {action?.name || actionId}
-                          {index < actions.length - 1 ? ', ' : ''}
-                        </span>
-                      );
-                    })}
-                  </div>
-                ))}
+                {Object.entries(conflictingKeymaps).map(([keymapWithMode, actions]) => {
+                  const [keymap, mode] = keymapWithMode.split(':');
+                  const modeLabel = [...KEYMAP_SECTIONS, ...Object.values(PLUGIN_SECTIONS)]
+                    .flatMap(s => s.actions)
+                    .find(a => a.mode === mode)?.modeLabel || mode;
+                  
+                  return (
+                    <div key={keymapWithMode}>
+                      <span className="font-mono bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.5 rounded text-xs">
+                        {keymap}
+                      </span>
+                      <span className="text-xs ml-1">
+                        in {modeLabel} mode
+                      </span>
+                      {' is used by: '}
+                      {actions.map((actionId, index) => {
+                        const action = [...KEYMAP_SECTIONS, ...Object.values(PLUGIN_SECTIONS)]
+                          .flatMap(s => s.actions)
+                          .find(a => a.id === actionId);
+                        return (
+                          <span key={actionId}>
+                            {action?.name || actionId}
+                            {index < actions.length - 1 ? ', ' : ''}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
               </div>
               <div className="text-xs opacity-80">
                 These conflicts won't prevent you from continuing, but may cause unexpected behavior.
@@ -552,59 +607,76 @@ const ModernKeymaps: React.FC<ModernKeymapsProps> = ({
             </CardHeader>
             <CardContent>
               <div className="space-y-8">
-                {getVisibleActions(currentSection.actions).map((action, index) => (
-                  <div key={action.id}>
-                      <div className="flex items-start gap-6">
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-2">
-                            <Label className="font-medium text-base">
-                              {action.name}
-                            </Label>
-                            {hasConflict(action.id) && (
-                              <Badge variant="destructive" className="text-xs flex items-center gap-1">
-                                <AlertTriangle className="w-3 h-3" />
-                                Conflict
-                              </Badge>
+                {Object.entries(getActionsGroupedByMode(currentSection.actions)).map(([mode, actions]) => {
+                  const modeLabel = actions[0]?.modeLabel || mode;
+                  
+                  return (
+                    <div key={mode} className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b border-border">
+                        {getModeIndicator(mode, modeLabel)}
+                        <span className="text-sm text-muted-foreground">
+                          {actions.length} keybinding{actions.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      
+                      <div className="space-y-6">
+                        {actions.map((action, index) => (
+                          <div key={action.id}>
+                            <div className="flex items-start gap-6">
+                              <div className="flex-1 space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <Label className="font-medium text-base">
+                                    {action.name}
+                                  </Label>
+                                  {hasConflict(action.id) && (
+                                    <Badge variant="destructive" className="text-xs flex items-center gap-1">
+                                      <AlertTriangle className="w-3 h-3" />
+                                      Conflict
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground leading-relaxed">
+                                  {action.description}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className="w-56 flex-shrink-0">
+                                  <KeyChordInput
+                                    value={keymaps[action.id] || DEFAULT_KEYMAPS[action.id] || ''}
+                                    onChange={(value) => onKeymapChange(action.id, value)}
+                                    leaderKey={leaderKey}
+                                    placeholder="No binding"
+                                    className={cn(
+                                      hasConflict(action.id) && "border-amber-500 dark:border-amber-600 ring-1 ring-amber-500/20"
+                                    )}
+                                  />
+                                </div>
+                                <div className="w-8 flex justify-center flex-shrink-0">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => resetSingleKeymap(action.id)}
+                                    className={cn(
+                                      "h-8 w-8 p-0 text-muted-foreground hover:text-foreground transition-opacity",
+                                      isKeymapChanged(action.id) ? "opacity-100" : "opacity-0 pointer-events-none"
+                                    )}
+                                    title={`Reset ${action.name} to default`}
+                                  >
+                                    <ResetIcon className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {index < actions.length - 1 && (
+                              <Separator className="mt-6" />
                             )}
                           </div>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          {action.description}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-56 flex-shrink-0">
-                          <KeyChordInput
-                            value={keymaps[action.id] || DEFAULT_KEYMAPS[action.id] || ''}
-                            onChange={(value) => onKeymapChange(action.id, value)}
-                            leaderKey={leaderKey}
-                            placeholder="No binding"
-                            className={cn(
-                              hasConflict(action.id) && "border-amber-500 dark:border-amber-600 ring-1 ring-amber-500/20"
-                            )}
-                          />
-                        </div>
-                        <div className="w-8 flex justify-center flex-shrink-0">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => resetSingleKeymap(action.id)}
-                            className={cn(
-                              "h-8 w-8 p-0 text-muted-foreground hover:text-foreground transition-opacity",
-                              isKeymapChanged(action.id) ? "opacity-100" : "opacity-0 pointer-events-none"
-                            )}
-                            title={`Reset ${action.name} to default`}
-                          >
-                            <ResetIcon className="w-4 h-4" />
-                          </Button>
-                        </div>
+                        ))}
                       </div>
                     </div>
-                    
-                    {index < getVisibleActions(currentSection.actions).length - 1 && (
-                      <Separator className="mt-8" />
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
