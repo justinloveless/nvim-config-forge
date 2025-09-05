@@ -42,9 +42,14 @@ export const saveToNvim = async (
   config: NvimListenerConfig
 ): Promise<NvimSaveResponse> => {
   try {
+    console.log(`Preparing to save ${filename} to Neovim at port ${config.port}`);
+    console.log(`Content preview: ${content.substring(0, 100)}...`);
+    
     const formData = new FormData();
     const file = new Blob([content], { type: 'text/plain' });
     formData.append('file', file, filename);
+
+    console.log('FormData created with file blob:', file.size, 'bytes');
 
     const response = await fetch(`http://127.0.0.1:${config.port}/save`, {
       method: 'POST',
@@ -54,8 +59,11 @@ export const saveToNvim = async (
       body: formData,
     });
 
+    console.log(`Response status: ${response.status}`);
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('Save failed with error:', errorData);
       return {
         success: false,
         message: errorData.error || `HTTP ${response.status}: ${response.statusText}`,
@@ -63,12 +71,14 @@ export const saveToNvim = async (
     }
 
     const data = await response.json();
+    console.log('Save successful:', data);
     return {
       success: true,
       message: data.message,
       path: data.path,
     };
   } catch (error) {
+    console.error('Save error:', error);
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Network error',

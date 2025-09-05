@@ -550,10 +550,18 @@ const Index = () => {
       return;
     }
 
+    console.log('Saving to Neovim with config:', {
+      port: config.nvimListenerPort || 45831,
+      hasToken: !!config.nvimListenerToken,
+      configLength: generatedConfig.length
+    });
+
     const nvimResult = await saveToNvim(generatedConfig, 'init.lua', {
       port: config.nvimListenerPort || 45831,
       token: config.nvimListenerToken || undefined,
     });
+    
+    console.log('Save result:', nvimResult);
     
     if (nvimResult.success) {
       toast({
