@@ -428,13 +428,10 @@ export const ModernSettings: React.FC<ModernSettingsProps> = ({
                 
                 return (
                   <SelectItem key={category.id} value={category.id}>
-                    <div className="flex items-center gap-2">
-                      {category.icon}
-                      <div>
-                        <div className="font-medium">{category.title}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {visibleSettingsCount} setting{visibleSettingsCount !== 1 ? 's' : ''}
-                        </div>
+                    <div>
+                      <div className="font-medium">{category.title}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {visibleSettingsCount} setting{visibleSettingsCount !== 1 ? 's' : ''}
                       </div>
                     </div>
                   </SelectItem>
@@ -444,13 +441,10 @@ export const ModernSettings: React.FC<ModernSettingsProps> = ({
               {/* Live Neovim Options Category */}
               {isNvimConnected && nvimOptions.length > 0 && (
                 <SelectItem value="nvim-live">
-                  <div className="flex items-center gap-2">
-                    <Wifi className="w-4 h-4" />
-                    <div>
-                      <div className="font-medium">Live Neovim Options</div>
-                      <div className="text-xs text-muted-foreground">
-                        {nvimOptions.length} live options
-                      </div>
+                  <div>
+                    <div className="font-medium">Live Neovim Options</div>
+                    <div className="text-xs text-muted-foreground">
+                      {nvimOptions.length} live options
                     </div>
                   </div>
                 </SelectItem>
@@ -561,57 +555,57 @@ export const ModernSettings: React.FC<ModernSettingsProps> = ({
                                (option.description && option.description.toLowerCase().includes(query));
                       })
                       .map((option) => (
-                        <div key={option.name} className="flex items-start gap-6">
-                          <div className="flex-1 space-y-2">
-                            <div className="flex items-center gap-2">
-                              <Label className="font-medium text-base font-mono">
-                                {option.name}
-                              </Label>
-                              <Badge variant="outline" className="text-xs">
-                                {option.scope}
-                              </Badge>
-                              <Badge variant="secondary" className="text-xs">
-                                {option.type}
-                              </Badge>
-                            </div>
-                            {option.description && (
-                              <p className="text-sm text-muted-foreground leading-relaxed">
-                                {option.description}
-                              </p>
-                            )}
-                          </div>
-                          <div className="w-56 flex-shrink-0">
-                            {option.type === 'boolean' ? (
-                              <Switch
-                                checked={option.value || false}
-                                onCheckedChange={(checked) => handleNvimOptionChange(option.name, checked)}
-                              />
-                            ) : option.type === 'number' ? (
-                              <Input
-                                type="number"
-                                value={option.value || 0}
-                                onChange={(e) => {
-                                  const value = parseInt(e.target.value) || 0;
-                                  handleNvimOptionChange(option.name, value);
-                                }}
-                              />
-                            ) : option.type === 'array' ? (
-                              <Textarea
-                                value={Array.isArray(option.value) ? option.value.join(',') : option.value || ''}
-                                onChange={(e) => {
-                                  const value = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
-                                  handleNvimOptionChange(option.name, value);
-                                }}
-                                rows={2}
-                              />
-                            ) : (
-                              <Input
-                                value={option.value || ''}
-                                onChange={(e) => handleNvimOptionChange(option.name, e.target.value)}
-                              />
-                            )}
-                          </div>
-                        </div>
+                         <div key={option.name} className="flex flex-col lg:flex-row lg:items-start gap-4 lg:gap-6">
+                           <div className="flex-1 space-y-2">
+                             <div className="flex items-center gap-2">
+                               <Label className="font-medium text-base font-mono">
+                                 {option.name}
+                               </Label>
+                               <Badge variant="outline" className="text-xs">
+                                 {option.scope}
+                               </Badge>
+                               <Badge variant="secondary" className="text-xs">
+                                 {option.type}
+                               </Badge>
+                             </div>
+                             {option.description && (
+                               <p className="text-sm text-muted-foreground leading-relaxed">
+                                 {option.description}
+                               </p>
+                             )}
+                           </div>
+                           <div className="w-full lg:w-56 lg:flex-shrink-0">
+                             {option.type === 'boolean' ? (
+                               <Switch
+                                 checked={option.value || false}
+                                 onCheckedChange={(checked) => handleNvimOptionChange(option.name, checked)}
+                               />
+                             ) : option.type === 'number' ? (
+                               <Input
+                                 type="number"
+                                 value={option.value || 0}
+                                 onChange={(e) => {
+                                   const value = parseInt(e.target.value) || 0;
+                                   handleNvimOptionChange(option.name, value);
+                                 }}
+                               />
+                             ) : option.type === 'array' ? (
+                               <Textarea
+                                 value={Array.isArray(option.value) ? option.value.join(',') : option.value || ''}
+                                 onChange={(e) => {
+                                   const value = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+                                   handleNvimOptionChange(option.name, value);
+                                 }}
+                                 rows={2}
+                               />
+                             ) : (
+                               <Input
+                                 value={option.value || ''}
+                                 onChange={(e) => handleNvimOptionChange(option.name, e.target.value)}
+                               />
+                             )}
+                           </div>
+                         </div>
                       ))}
                   </div>
                 </CardContent>
@@ -639,50 +633,50 @@ export const ModernSettings: React.FC<ModernSettingsProps> = ({
                       visibleCategories.find(cat => cat.id === selectedCategory)?.settings || []
                     ).map((setting, index) => (
                       <div key={setting.id}>
-                        <div className="flex items-start gap-6">
-                          <div className="flex-1 space-y-2">
-                            <div className="flex items-center gap-2">
-                              <Label className="font-medium text-base">
-                                {setting.title}
-                              </Label>
-                              {setting.requiresPlugins && (
-                                <Badge variant="secondary" className="text-xs">
-                                  Plugin: {setting.requiresPlugins.join(', ')}
-                                </Badge>
-                              )}
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <Info className="w-4 h-4 text-muted-foreground" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p className="max-w-xs">{setting.description}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              {setting.description}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-56 flex-shrink-0">
-                              {renderSettingControl(setting)}
-                            </div>
-                            <div className="w-8 flex justify-center flex-shrink-0">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => resetSingleSetting(setting.id)}
-                                className={cn(
-                                  "h-8 w-8 p-0 text-muted-foreground hover:text-foreground transition-opacity",
-                                  isSettingChanged(setting.id) ? "opacity-100" : "opacity-0 pointer-events-none"
-                                )}
-                                title={`Reset ${setting.title} to default`}
-                              >
-                                <ResetIcon className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
+                         <div className="flex flex-col lg:flex-row lg:items-start gap-4 lg:gap-6">
+                           <div className="flex-1 space-y-2">
+                             <div className="flex items-center gap-2">
+                               <Label className="font-medium text-base">
+                                 {setting.title}
+                               </Label>
+                               {setting.requiresPlugins && (
+                                 <Badge variant="secondary" className="text-xs">
+                                   Plugin: {setting.requiresPlugins.join(', ')}
+                                 </Badge>
+                               )}
+                               <Tooltip>
+                                 <TooltipTrigger>
+                                   <Info className="w-4 h-4 text-muted-foreground" />
+                                 </TooltipTrigger>
+                                 <TooltipContent>
+                                   <p className="max-w-xs">{setting.description}</p>
+                                 </TooltipContent>
+                               </Tooltip>
+                             </div>
+                             <p className="text-sm text-muted-foreground leading-relaxed">
+                               {setting.description}
+                             </p>
+                           </div>
+                           <div className="flex items-center gap-3 w-full lg:min-w-0 lg:w-auto">
+                             <div className="w-full lg:w-56 lg:flex-shrink-0">
+                               {renderSettingControl(setting)}
+                             </div>
+                             <div className="w-8 flex justify-center flex-shrink-0">
+                               <Button
+                                 variant="ghost"
+                                 size="sm"
+                                 onClick={() => resetSingleSetting(setting.id)}
+                                 className={cn(
+                                   "h-8 w-8 p-0 text-muted-foreground hover:text-foreground transition-opacity",
+                                   isSettingChanged(setting.id) ? "opacity-100" : "opacity-0 pointer-events-none"
+                                 )}
+                                 title={`Reset ${setting.title} to default`}
+                               >
+                                 <ResetIcon className="w-4 h-4" />
+                               </Button>
+                             </div>
+                           </div>
+                         </div>
                         
                         {index < getVisibleSettings(
                           visibleCategories.find(cat => cat.id === selectedCategory)?.settings || []

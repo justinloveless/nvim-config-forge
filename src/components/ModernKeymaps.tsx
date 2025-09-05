@@ -554,13 +554,10 @@ const ModernKeymaps: React.FC<ModernKeymapsProps> = ({
                   
                   return (
                     <SelectItem key={section.id} value={section.id}>
-                      <div className="flex items-center gap-2">
-                        {section.icon}
-                        <div>
-                          <div className="font-medium text-sm">{section.title}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {hasVisibleActions ? `${visibleActions.length} keybinding${visibleActions.length !== 1 ? 's' : ''}` : 'No matches'}
-                          </div>
+                      <div>
+                        <div className="font-medium text-sm">{section.title}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {hasVisibleActions ? `${visibleActions.length} keybinding${visibleActions.length !== 1 ? 's' : ''}` : 'No matches'}
                         </div>
                         {section.pluginId && (
                           <Badge variant="secondary" className="text-xs ml-2">
@@ -677,51 +674,51 @@ const ModernKeymaps: React.FC<ModernKeymapsProps> = ({
                       <div className="space-y-6">
                         {actions.map((action, index) => (
                           <div key={action.id}>
-                            <div className="flex items-start gap-6">
-                              <div className="flex-1 space-y-2">
-                                <div className="flex items-center gap-2">
-                                  <Label className="font-medium text-base">
-                                    {action.name}
-                                  </Label>
-                                  {hasConflict(action.id) && (
-                                    <Badge variant="destructive" className="text-xs flex items-center gap-1">
-                                      <AlertTriangle className="w-3 h-3" />
-                                      Conflict
-                                    </Badge>
-                                  )}
-                                </div>
-                                <p className="text-sm text-muted-foreground leading-relaxed">
-                                  {action.description}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-3 min-w-0">
-                                <div className="w-56 flex-shrink-0">
-                                  <KeyChordInput
-                                    value={keymaps[action.id] || DEFAULT_KEYMAPS[action.id] || ''}
-                                    onChange={(value) => onKeymapChange(action.id, value)}
-                                    leaderKey={leaderKey}
-                                    placeholder="No binding"
-                                    className={cn(
-                                      hasConflict(action.id) && "border-amber-500 dark:border-amber-600 ring-1 ring-amber-500/20"
-                                    )}
-                                  />
-                                </div>
-                                <div className="w-8 flex justify-center flex-shrink-0">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => resetSingleKeymap(action.id)}
-                                    className={cn(
-                                      "h-8 w-8 p-0 text-muted-foreground hover:text-foreground transition-opacity",
-                                      isKeymapChanged(action.id) ? "opacity-100" : "opacity-0 pointer-events-none"
-                                    )}
-                                    title={`Reset ${action.name} to default`}
-                                  >
-                                    <ResetIcon className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
+                             <div className="flex flex-col lg:flex-row lg:items-start gap-4 lg:gap-6">
+                               <div className="flex-1 space-y-2">
+                                 <div className="flex items-center gap-2">
+                                   <Label className="font-medium text-base">
+                                     {action.name}
+                                   </Label>
+                                   {hasConflict(action.id) && (
+                                     <Badge variant="destructive" className="text-xs flex items-center gap-1">
+                                       <AlertTriangle className="w-3 h-3" />
+                                       Conflict
+                                     </Badge>
+                                   )}
+                                 </div>
+                                 <p className="text-sm text-muted-foreground leading-relaxed">
+                                   {action.description}
+                                 </p>
+                               </div>
+                               <div className="flex items-center gap-3 w-full lg:min-w-0 lg:w-auto">
+                                 <div className="w-full lg:w-56 lg:flex-shrink-0">
+                                   <KeyChordInput
+                                     value={keymaps[action.id] || DEFAULT_KEYMAPS[action.id] || ''}
+                                     onChange={(value) => onKeymapChange(action.id, value)}
+                                     leaderKey={leaderKey}
+                                     placeholder="No binding"
+                                     className={cn(
+                                       hasConflict(action.id) && "border-amber-500 dark:border-amber-600 ring-1 ring-amber-500/20"
+                                     )}
+                                   />
+                                 </div>
+                                 <div className="w-8 flex justify-center flex-shrink-0">
+                                   <Button
+                                     variant="ghost"
+                                     size="sm"
+                                     onClick={() => resetSingleKeymap(action.id)}
+                                     className={cn(
+                                       "h-8 w-8 p-0 text-muted-foreground hover:text-foreground transition-opacity",
+                                       isKeymapChanged(action.id) ? "opacity-100" : "opacity-0 pointer-events-none"
+                                     )}
+                                     title={`Reset ${action.name} to default`}
+                                   >
+                                     <ResetIcon className="w-4 h-4" />
+                                   </Button>
+                                 </div>
+                               </div>
+                             </div>
                             
                             {index < actions.length - 1 && (
                               <Separator className="mt-6" />
