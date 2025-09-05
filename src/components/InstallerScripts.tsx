@@ -186,7 +186,7 @@ echo "Run 'nvim' to start using your new configuration."
     return `# PowerShell Installation Script for Neovim Configuration
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
 
-Write-Host "🚀 Installing Neovim Configuration..." -ForegroundColor Cyan
+Write-Host "Installing Neovim Configuration..." -ForegroundColor Cyan
 
 # Check if Neovim is installed
 if (!(Get-Command nvim -ErrorAction SilentlyContinue)) {
@@ -199,32 +199,32 @@ Write-Host "Installing JetBrains Mono Nerd Font..." -ForegroundColor Yellow
 winget install JetBrains.JetBrainsMono
 
 # Create config directory
-\\$configDir = "\\$env:LOCALAPPDATA\\nvim"
-if (!(Test-Path \\$configDir)) {
-    New-Item -ItemType Directory -Path \\$configDir -Force
+$configDir = "$env:LOCALAPPDATA\\nvim"
+if (!(Test-Path $configDir)) {
+    New-Item -ItemType Directory -Path $configDir -Force | Out-Null
 }
 
 # Backup existing config if it exists
-\\$initFile = "\\$configDir\\init.lua"
-if (Test-Path \\$initFile) {
+$initFile = "$configDir\\init.lua"
+if (Test-Path $initFile) {
     Write-Host "Backing up existing config..." -ForegroundColor Yellow
-    \\$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-    Move-Item \\$initFile "\\$initFile.backup.\\$timestamp"
+    $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+    Move-Item $initFile "$initFile.backup.$timestamp"
 }
 
 # Create the init.lua file
-\\$configContent = @"
-${generatedConfig.replace(/"/g, '""')}
-"@
+$configContent = @'
+${generatedConfig}
+'@
 
-Set-Content -Path \\$initFile -Value \\$configContent -Encoding UTF8
+Set-Content -Path $initFile -Value $configContent -Encoding UTF8
 
 # Install language tools
 Write-Host "Installing language tools..." -ForegroundColor Yellow
 ${toolCommands.join('\n')}
 
-Write-Host "✅ Neovim configuration installed successfully!" -ForegroundColor Green
-Write-Host "📝 Don't forget to set your terminal to use JetBrains Mono Nerd Font" -ForegroundColor Yellow
+Write-Host "Neovim configuration installed successfully!" -ForegroundColor Green
+Write-Host "Do not forget to set your terminal to use JetBrains Mono Nerd Font" -ForegroundColor Yellow
 Write-Host "Run nvim to start using your new configuration." -ForegroundColor Cyan
 Read-Host "Press Enter to continue..."
 `;
