@@ -60,6 +60,11 @@ export default {
 					red: 'hsl(var(--nvim-red))',
 					yellow: 'hsl(var(--nvim-yellow))'
 				},
+				console: {
+					green: 'hsl(var(--console-green))',
+					amber: 'hsl(var(--console-amber))',
+					cyan: 'hsl(var(--console-cyan))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',

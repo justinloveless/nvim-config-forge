@@ -20,6 +20,7 @@ import { ConfigImporter } from '@/components/ConfigImporter';
 import { BuyMeCoffeeButton } from '@/components/BuyMeCoffeeButton';
 import { GenerateActions } from '@/components/GenerateActions';
 import { PluginWizardStep } from '@/components/PluginWizardStep';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { connectDirectory, writeToConnectedDirectory, hasDirectoryConnection } from '@/utils/dirHandleStore';
 import { detectNvimListener, saveToNvim } from '@/utils/nvimListener';
 import { Code, Palette, Plug, Settings, Download, FileText, Copy, Check, Zap, Wrench, FileUp, Folder, RefreshCw, Wifi, WifiOff } from 'lucide-react';
@@ -702,8 +703,9 @@ const Index = () => {
         "container mx-auto px-4 max-w-6xl mb-20",
         currentStep === 0 ? "py-6 md:py-12" : "pt-1 pb-6 md:pt-2 md:pb-12"
       )}>
-        {/* Buy me a coffee button - floated at top */}
-        <div className="flex justify-end mb-4">
+        {/* Header controls - theme toggle and buy me a coffee */}
+        <div className="flex justify-between items-center mb-4">
+          <ThemeToggle />
           <BuyMeCoffeeButton />
         </div>
 
