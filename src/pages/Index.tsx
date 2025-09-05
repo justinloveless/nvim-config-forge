@@ -584,6 +584,11 @@ const Index = () => {
             settings={config.settingsConfig || getDefaultSettingsConfig()}
             onSettingsChange={handleSettingsConfigChange}
             selectedPlugins={config.plugins}
+            isNvimConnected={nvimListenerConnected}
+            nvimConfig={config.nvimListenerEnabled ? {
+              port: config.nvimListenerPort || 45831,
+              token: config.nvimListenerToken
+            } : undefined}
           />
         );
       case 5:

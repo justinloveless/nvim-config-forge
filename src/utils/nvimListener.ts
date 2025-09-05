@@ -9,6 +9,21 @@ interface NvimSaveResponse {
   path?: string;
 }
 
+interface NvimOption {
+  name: string;
+  value: any;
+  type: 'boolean' | 'number' | 'string' | 'array';
+  scope: 'global' | 'local' | 'window' | 'buffer';
+  description?: string;
+  default?: any;
+}
+
+interface NvimOptionsResponse {
+  success: boolean;
+  options?: NvimOption[];
+  message?: string;
+}
+
 export const detectNvimListener = async (config: NvimListenerConfig): Promise<boolean> => {
   try {
     const response = await fetch(`http://127.0.0.1:${config.port}/ping`, {
@@ -52,6 +67,70 @@ export const saveToNvim = async (
       success: true,
       message: data.message,
       path: data.path,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Network error',
+    };
+  }
+};
+
+export const getNvimOptions = async (config: NvimListenerConfig): Promise<NvimOptionsResponse> => {
+  try {
+    const response = await fetch(`http://127.0.0.1:${config.port}/api/options`, {
+      method: 'GET',
+      headers: config.token ? { 'Authorization': `Bearer ${config.token}` } : {},
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return {
+        success: false,
+        message: errorData.error || `HTTP ${response.status}: ${response.statusText}`,
+      };
+    }
+
+    const data = await response.json();
+    return {
+      success: true,
+      options: data.options,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Network error',
+    };
+  }
+};
+
+export const setNvimOption = async (
+  optionName: string, 
+  value: any, 
+  config: NvimListenerConfig
+): Promise<NvimSaveResponse> => {
+  try {
+    const response = await fetch(`http://127.0.0.1:${config.port}/api/options`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(config.token ? { 'Authorization': `Bearer ${config.token}` } : {}),
+      },
+      body: JSON.stringify({ option: optionName, value }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return {
+        success: false,
+        message: errorData.error || `HTTP ${response.status}: ${response.statusText}`,
+      };
+    }
+
+    const data = await response.json();
+    return {
+      success: true,
+      message: data.message,
     };
   } catch (error) {
     return {
@@ -272,6 +351,56 @@ local function setup_config_listener()
           else
             respond(client, "500 Internal Server Error", { ["Content-Type"] = "application/json" },
                     '{"error": "Failed to write file"}')
+          end
+        elseif method == "GET" and path == "/api/options" then
+          -- Get all vim options and their current values
+          local options = {}
+          local option_info = vim.api.nvim_get_all_options_info()
+          
+          for name, info in pairs(option_info) do
+            local success, value = pcall(vim.api.nvim_get_option_value, name, {})
+            if success then
+              local option_type = "string"
+              if type(value) == "boolean" then
+                option_type = "boolean"
+              elseif type(value) == "number" then
+                option_type = "number"
+              elseif type(value) == "table" then
+                option_type = "array"
+              end
+              
+              table.insert(options, {
+                name = name,
+                value = value,
+                type = option_type,
+                scope = info.scope or "global",
+                description = info.shortdesc or "",
+                default = info.default
+              })
+            end
+          end
+          
+          local options_json = vim.fn.json_encode({ options = options })
+          respond(client, "200 OK", { ["Content-Type"] = "application/json" }, options_json)
+        elseif method == "POST" and path == "/api/options" then
+          -- Set a vim option
+          local success, json_data = pcall(vim.fn.json_decode, body)
+          if not success or not json_data or not json_data.option then
+            respond(client, "400 Bad Request", { ["Content-Type"] = "application/json" },
+                    '{"error": "Invalid JSON or missing option field"}')
+            return
+          end
+          
+          local option_name = json_data.option
+          local option_value = json_data.value
+          
+          local set_success, set_error = pcall(vim.api.nvim_set_option_value, option_name, option_value, {})
+          if set_success then
+            respond(client, "200 OK", { ["Content-Type"] = "application/json" },
+                    '{"success": true, "message": "Option ' .. option_name .. ' set successfully"}')
+          else
+            respond(client, "400 Bad Request", { ["Content-Type"] = "application/json" },
+                    '{"error": "Failed to set option: ' .. (set_error or "unknown error") .. '"}')
           end
         else
           respond(client, "404 Not Found", { ["Content-Type"] = "application/json" }, '{"error": "Not found"}')

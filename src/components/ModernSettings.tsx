@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,26 +9,112 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Search, RotateCcw, Info, RotateCcw as ResetIcon } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Search, RotateCcw, Info, RotateCcw as ResetIcon, Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { SETTINGS_CATEGORIES } from '@/data/settingsConfig';
 import { SettingsConfig, SettingDefinition } from '@/types/settings';
+import { getNvimOptions, setNvimOption } from '@/utils/nvimListener';
+import { useToast } from '@/hooks/use-toast';
+
+interface NvimOption {
+  name: string;
+  value: any;
+  type: 'boolean' | 'number' | 'string' | 'array';
+  scope: 'global' | 'local' | 'window' | 'buffer';
+  description?: string;
+  default?: any;
+}
 
 interface ModernSettingsProps {
   settings: SettingsConfig;
   onSettingsChange: (newSettings: SettingsConfig) => void;
   selectedPlugins: string[];
+  isNvimConnected?: boolean;
+  nvimConfig?: { port: number; token?: string };
 }
 
 export const ModernSettings: React.FC<ModernSettingsProps> = ({
   settings,
   onSettingsChange,
-  selectedPlugins
+  selectedPlugins,
+  isNvimConnected = false,
+  nvimConfig
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('editor');
+  const [nvimOptions, setNvimOptions] = useState<NvimOption[]>([]);
+  const [loadingOptions, setLoadingOptions] = useState(false);
+  const { toast } = useToast();
   
+  
+  // Fetch Neovim options when connected
+  const fetchNvimOptions = async () => {
+    if (!isNvimConnected || !nvimConfig) return;
+    
+    setLoadingOptions(true);
+    try {
+      const response = await getNvimOptions(nvimConfig);
+      if (response.success && response.options) {
+        setNvimOptions(response.options);
+      } else {
+        toast({
+          title: "Failed to fetch Neovim options",
+          description: response.message || "Unknown error",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error fetching options",
+        description: "Failed to connect to Neovim",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingOptions(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isNvimConnected) {
+      fetchNvimOptions();
+    } else {
+      setNvimOptions([]);
+    }
+  }, [isNvimConnected, nvimConfig?.port, nvimConfig?.token]);
+
+  // Handle Neovim option changes
+  const handleNvimOptionChange = async (optionName: string, value: any) => {
+    if (!nvimConfig) return;
+    
+    try {
+      const response = await setNvimOption(optionName, value, nvimConfig);
+      if (response.success) {
+        // Update local state
+        setNvimOptions(prev => prev.map(opt => 
+          opt.name === optionName ? { ...opt, value } : opt
+        ));
+        toast({
+          title: "Option updated",
+          description: `${optionName} set to ${value}`,
+        });
+      } else {
+        toast({
+          title: "Failed to update option",
+          description: response.message || "Unknown error",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error updating option",
+        description: "Failed to update Neovim option",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Filter settings within each category
   const getVisibleSettings = (categorySettings: SettingDefinition[]) => {
     return categorySettings.filter(setting => {
@@ -328,6 +414,12 @@ export const ModernSettings: React.FC<ModernSettingsProps> = ({
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg">Categories</CardTitle>
+                {isNvimConnected && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Wifi className="w-4 h-4 text-green-600" />
+                    <span className="text-green-600">Live Neovim Options</span>
+                  </div>
+                )}
               </CardHeader>
               <CardContent className="space-y-1">
                 {visibleCategories.map((category) => {
@@ -356,27 +448,140 @@ export const ModernSettings: React.FC<ModernSettingsProps> = ({
                     </button>
                   );
                 })}
+                
+                {/* Live Neovim Options Category */}
+                {isNvimConnected && nvimOptions.length > 0 && (
+                  <button
+                    onClick={() => setSelectedCategory('nvim-live')}
+                    className={cn(
+                      "w-full flex items-center gap-3 p-3 rounded-md text-left transition-colors",
+                      selectedCategory === 'nvim-live'
+                        ? "bg-primary/10 text-primary border border-primary/20"
+                        : "hover:bg-muted/50"
+                    )}
+                  >
+                    <Wifi className="w-5 h-5" />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium">Live Neovim Options</div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {nvimOptions.length} live options
+                      </div>
+                    </div>
+                  </button>
+                )}
               </CardContent>
             </Card>
           </div>
           
           {/* Settings Content */}
           <div className="lg:col-span-3">
-            {visibleCategories.find(cat => cat.id === selectedCategory) && (
+            {selectedCategory === 'nvim-live' ? (
+              /* Live Neovim Options */
               <Card>
                 <CardHeader>
-                  <div className="flex items-center gap-3">
-                    {visibleCategories.find(cat => cat.id === selectedCategory)?.icon}
-                    <div>
-                      <CardTitle>
-                        {visibleCategories.find(cat => cat.id === selectedCategory)?.title}
-                      </CardTitle>
-                      <CardDescription>
-                        {visibleCategories.find(cat => cat.id === selectedCategory)?.description}
-                      </CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Wifi className="w-5 h-5" />
+                      <div>
+                        <CardTitle>Live Neovim Options</CardTitle>
+                        <CardDescription>
+                          Current options from your running Neovim instance
+                        </CardDescription>
+                      </div>
                     </div>
+                    <Button
+                      onClick={fetchNvimOptions}
+                      variant="outline"
+                      size="sm"
+                      disabled={loadingOptions}
+                    >
+                      <RefreshCw className={cn("w-4 h-4 mr-2", loadingOptions && "animate-spin")} />
+                      Refresh
+                    </Button>
                   </div>
                 </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {nvimOptions
+                      .filter(option => {
+                        if (!searchQuery.trim()) return true;
+                        const query = searchQuery.toLowerCase();
+                        return option.name.toLowerCase().includes(query) ||
+                               (option.description && option.description.toLowerCase().includes(query));
+                      })
+                      .map((option) => (
+                        <div key={option.name} className="flex items-start gap-6">
+                          <div className="flex-1 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Label className="font-medium text-base font-mono">
+                                {option.name}
+                              </Label>
+                              <Badge variant="outline" className="text-xs">
+                                {option.scope}
+                              </Badge>
+                              <Badge variant="secondary" className="text-xs">
+                                {option.type}
+                              </Badge>
+                            </div>
+                            {option.description && (
+                              <p className="text-sm text-muted-foreground leading-relaxed">
+                                {option.description}
+                              </p>
+                            )}
+                          </div>
+                          <div className="w-56 flex-shrink-0">
+                            {option.type === 'boolean' ? (
+                              <Switch
+                                checked={option.value || false}
+                                onCheckedChange={(checked) => handleNvimOptionChange(option.name, checked)}
+                              />
+                            ) : option.type === 'number' ? (
+                              <Input
+                                type="number"
+                                value={option.value || 0}
+                                onChange={(e) => {
+                                  const value = parseInt(e.target.value) || 0;
+                                  handleNvimOptionChange(option.name, value);
+                                }}
+                              />
+                            ) : option.type === 'array' ? (
+                              <Textarea
+                                value={Array.isArray(option.value) ? option.value.join(',') : option.value || ''}
+                                onChange={(e) => {
+                                  const value = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+                                  handleNvimOptionChange(option.name, value);
+                                }}
+                                rows={2}
+                              />
+                            ) : (
+                              <Input
+                                value={option.value || ''}
+                                onChange={(e) => handleNvimOptionChange(option.name, e.target.value)}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              /* Standard Settings Categories */
+              visibleCategories.find(cat => cat.id === selectedCategory) && (
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      {visibleCategories.find(cat => cat.id === selectedCategory)?.icon}
+                      <div>
+                        <CardTitle>
+                          {visibleCategories.find(cat => cat.id === selectedCategory)?.title}
+                        </CardTitle>
+                        <CardDescription>
+                          {visibleCategories.find(cat => cat.id === selectedCategory)?.description}
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
                 <CardContent>
                   <div className="space-y-8">
                     {getVisibleSettings(
@@ -434,8 +639,9 @@ export const ModernSettings: React.FC<ModernSettingsProps> = ({
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )
             )}
           </div>
         </div>
