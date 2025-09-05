@@ -317,6 +317,15 @@ const Index = () => {
     updateURL(currentStep, newConfig);
   };
 
+  const handleBatchKeymapChange = (newKeymaps: { [action: string]: string }) => {
+    const newConfig = {
+      ...config,
+      keymaps: { ...config.keymaps, ...newKeymaps }
+    };
+    setConfig(newConfig);
+    updateURL(currentStep, newConfig);
+  };
+
   const handleNext = () => {
     const newStep = Math.min(currentStep + 1, STEPS.length - 1);
     setIsTransitioning(true);
@@ -559,6 +568,7 @@ const Index = () => {
             selectedPlugins={config.plugins}
             onLeaderKeyChange={handleLeaderKeyChange}
             onKeymapChange={handleKeymapChange}
+            onBatchKeymapChange={handleBatchKeymapChange}
           />
         );
       case 6:

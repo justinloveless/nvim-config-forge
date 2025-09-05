@@ -23,6 +23,7 @@ interface ModernKeymapsProps {
   selectedPlugins: string[];
   onLeaderKeyChange: (leader: string) => void;
   onKeymapChange: (action: string, keymap: string) => void;
+  onBatchKeymapChange?: (keymaps: { [action: string]: string }) => void;
 }
 
 interface KeymapAction {
@@ -257,6 +258,7 @@ const ModernKeymaps: React.FC<ModernKeymapsProps> = ({
   selectedPlugins,
   onLeaderKeyChange,
   onKeymapChange,
+  onBatchKeymapChange,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSection, setSelectedSection] = useState('general');
@@ -345,19 +347,23 @@ const ModernKeymaps: React.FC<ModernKeymapsProps> = ({
   // Initialize default keymaps
   useEffect(() => {
     const initializeDefaults = () => {
-      // Initialize general keymaps
+      const pendingUpdates: { [key: string]: string } = {};
+      let hasUpdates = false;
+
+      // Collect general keymaps that need initialization
       KEYMAP_SECTIONS.forEach(section => {
         section.actions.forEach(action => {
           if (!keymaps[action.id]) {
             const defaultValue = DEFAULT_KEYMAPS[action.id];
             if (defaultValue) {
-              onKeymapChange(action.id, defaultValue);
+              pendingUpdates[action.id] = defaultValue;
+              hasUpdates = true;
             }
           }
         });
       });
 
-      // Initialize plugin keymaps
+      // Collect plugin keymaps that need initialization
       selectedPlugins.forEach(pluginId => {
         const pluginSection = PLUGIN_SECTIONS[pluginId];
         if (pluginSection) {
@@ -365,16 +371,29 @@ const ModernKeymaps: React.FC<ModernKeymapsProps> = ({
             if (!keymaps[action.id]) {
               const defaultValue = DEFAULT_KEYMAPS[action.id];
               if (defaultValue) {
-                onKeymapChange(action.id, defaultValue);
+                pendingUpdates[action.id] = defaultValue;
+                hasUpdates = true;
               }
             }
           });
         }
       });
+
+      // Apply all updates at once to avoid excessive history.replaceState calls
+      if (hasUpdates) {
+        if (onBatchKeymapChange) {
+          onBatchKeymapChange(pendingUpdates);
+        } else {
+          // Fallback to individual calls if batch function not available
+          Object.entries(pendingUpdates).forEach(([actionId, defaultValue]) => {
+            onKeymapChange(actionId, defaultValue);
+          });
+        }
+      }
     };
 
     initializeDefaults();
-  }, [selectedPlugins, keymaps, onKeymapChange]);
+  }, [selectedPlugins, keymaps, onKeymapChange, onBatchKeymapChange]);
 
   // Get current section
   const currentSection = visibleSections.find(section => section.id === selectedSection) || visibleSections[0];
