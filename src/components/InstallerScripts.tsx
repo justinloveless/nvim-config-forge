@@ -50,6 +50,10 @@ if ! command -v nvim &> /dev/null; then
     brew install neovim
 fi
 
+# Install JetBrains Mono Nerd Font
+echo "Installing JetBrains Mono Nerd Font..."
+brew install font-jetbrains-mono-nerd-font
+
 # Create config directory
 mkdir -p ~/.config/nvim
 
@@ -69,6 +73,7 @@ echo "Installing language tools..."
 ${toolCommands.join('\n')}
 
 echo "✅ Neovim configuration installed successfully!"
+echo "📝 Don't forget to set your terminal to use 'JetBrains Mono Nerd Font'"
 echo "Run 'nvim' to start using your new configuration."
 `;
   };
@@ -119,6 +124,15 @@ if ! command -v nvim &> /dev/null; then
     fi
 fi
 
+# Install JetBrains Mono Nerd Font
+echo "Installing JetBrains Mono Nerd Font..."
+FONT_DIR="$HOME/.local/share/fonts"
+mkdir -p "$FONT_DIR"
+cd "$FONT_DIR"
+curl -fLo "JetBrains Mono Nerd Font Complete.ttf" \\
+    https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFont-Regular.ttf
+fc-cache -fv
+
 # Create config directory
 mkdir -p ~/.config/nvim
 
@@ -138,6 +152,7 @@ echo "Installing language tools..."
 ${toolCommands.join('\n')}
 
 echo "✅ Neovim configuration installed successfully!"
+echo "📝 Don't forget to set your terminal to use 'JetBrains Mono Nerd Font'"
 echo "Run 'nvim' to start using your new configuration."
 `;
   };
@@ -180,6 +195,10 @@ if %errorlevel% neq 0 (
     winget install Neovim.Neovim
 )
 
+REM Install JetBrains Mono Nerd Font
+echo Installing JetBrains Mono Nerd Font...
+winget install JetBrains.JetBrainsMono
+
 REM Create config directory
 if not exist "%LOCALAPPDATA%\\nvim" mkdir "%LOCALAPPDATA%\\nvim"
 
@@ -201,6 +220,7 @@ echo Installing language tools...
 ${toolCommands.join('\n')}
 
 echo ✅ Neovim configuration installed successfully!
+echo 📝 Don't forget to set your terminal to use 'JetBrains Mono Nerd Font'
 echo Run 'nvim' to start using your new configuration.
 pause
 `;

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -305,7 +306,8 @@ export const GenerateActions: React.FC<GenerateActionsProps> = ({
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      {/* Desktop Layout (sidebar) */}
+      <div className="hidden lg:grid lg:grid-cols-4 gap-6">
         {/* Categories Sidebar */}
         <div className="lg:col-span-1">
           <Card>
@@ -358,6 +360,43 @@ export const GenerateActions: React.FC<GenerateActionsProps> = ({
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Mobile/Tablet Layout (tabs) */}
+      <div className="lg:hidden">
+        <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
+          <TabsList className="grid w-full grid-cols-5">
+            {ACTION_CATEGORIES.map((category) => (
+              <TabsTrigger 
+                key={category.id} 
+                value={category.id}
+                className="flex flex-col gap-1 h-16 text-xs"
+              >
+                {category.icon}
+                <span className="hidden sm:inline">{category.title.split(' ')[0]}</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          
+          {ACTION_CATEGORIES.map((category) => (
+            <TabsContent key={category.id} value={category.id} className="mt-6">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    {category.icon}
+                    <div>
+                      <CardTitle>{category.title}</CardTitle>
+                      <CardDescription>{category.description}</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {selectedCategory === category.id && renderCurrentCategory()}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          ))}
+        </Tabs>
       </div>
     </div>
   );
