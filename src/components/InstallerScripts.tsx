@@ -183,53 +183,57 @@ echo "Run 'nvim' to start using your new configuration."
       }
     }).filter(Boolean);
 
-    return `@echo off
-setlocal enabledelayedexpansion
+    return `# PowerShell Installation Script for Neovim Configuration
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
 
-echo 🚀 Installing Neovim Configuration...
+Write-Host "🚀 Installing Neovim Configuration..." -ForegroundColor Cyan
 
-REM Check if Neovim is installed
-where nvim >nul 2>nul
-if %errorlevel% neq 0 (
-    echo Installing Neovim...
+# Check if Neovim is installed
+if (!(Get-Command nvim -ErrorAction SilentlyContinue)) {
+    Write-Host "Installing Neovim..." -ForegroundColor Yellow
     winget install Neovim.Neovim
-)
+}
 
-REM Install JetBrains Mono Nerd Font
-echo Installing JetBrains Mono Nerd Font...
+# Install JetBrains Mono Nerd Font
+Write-Host "Installing JetBrains Mono Nerd Font..." -ForegroundColor Yellow
 winget install JetBrains.JetBrainsMono
 
-REM Create config directory
-if not exist "%LOCALAPPDATA%\\nvim" mkdir "%LOCALAPPDATA%\\nvim"
+# Create config directory
+$configDir = "$env:LOCALAPPDATA\\nvim"
+if (!(Test-Path $configDir)) {
+    New-Item -ItemType Directory -Path $configDir -Force
+}
 
-REM Backup existing config if it exists
-if exist "%LOCALAPPDATA%\\nvim\\init.lua" (
-    echo Backing up existing config...
-    for /f "tokens=2-4 delims=/ " %%a in ('date /t') do (set mydate=%%c%%a%%b)
-    for /f "tokens=1-2 delims=/:" %%a in ('time /t') do (set mytime=%%a%%b)
-    move "%LOCALAPPDATA%\\nvim\\init.lua" "%LOCALAPPDATA%\\nvim\\init.lua.backup.!mydate!_!mytime!"
-)
+# Backup existing config if it exists
+$initFile = "$configDir\\init.lua"
+if (Test-Path $initFile) {
+    Write-Host "Backing up existing config..." -ForegroundColor Yellow
+    $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+    Move-Item $initFile "$initFile.backup.$timestamp"
+}
 
-REM Create the init.lua file
-(
-echo ${generatedConfig.replace(/\n/g, '\necho ')}
-) > "%LOCALAPPDATA%\\nvim\\init.lua"
+# Create the init.lua file
+$configContent = @"
+${generatedConfig}
+"@
 
-REM Install language tools
-echo Installing language tools...
+Set-Content -Path $initFile -Value $configContent -Encoding UTF8
+
+# Install language tools
+Write-Host "Installing language tools..." -ForegroundColor Yellow
 ${toolCommands.join('\n')}
 
-echo ✅ Neovim configuration installed successfully!
-echo 📝 Don't forget to set your terminal to use 'JetBrains Mono Nerd Font'
-echo Run 'nvim' to start using your new configuration.
-pause
+Write-Host "✅ Neovim configuration installed successfully!" -ForegroundColor Green
+Write-Host "📝 Don't forget to set your terminal to use 'JetBrains Mono Nerd Font'" -ForegroundColor Yellow
+Write-Host "Run 'nvim' to start using your new configuration." -ForegroundColor Cyan
+Read-Host "Press Enter to continue..."
 `;
   };
 
   const scripts = {
     macos: { name: 'install-neovim-config.sh', content: generateMacOSScript() },
     linux: { name: 'install-neovim-config.sh', content: generateLinuxScript() },
-    windows: { name: 'install-neovim-config.bat', content: generateWindowsScript() }
+    windows: { name: 'install-neovim-config.ps1', content: generateWindowsScript() }
   };
 
   const handleCopyScript = async (os: string) => {
@@ -329,8 +333,8 @@ pause
                   <ul className="list-disc list-inside space-y-1">
                     {os === 'windows' ? (
                       <>
-                        <li>Download the .bat file</li>
-                        <li>Right-click and "Run as administrator"</li>
+                        <li>Download the .ps1 file</li>
+                        <li>Right-click and "Run with PowerShell" or open PowerShell and run: <code className="bg-background/50 px-1 rounded">powershell -ExecutionPolicy Bypass -File {script.name}</code></li>
                         <li>Follow the prompts</li>
                       </>
                     ) : (
