@@ -1002,6 +1002,11 @@ const Index = () => {
         currentStep === 0 ? "py-6 md:py-12" : "pt-1 pb-6 md:pt-2 md:pb-12"
       )}>
         {/* Header - Only show on Quick Start step with animation */}
+        {/* Always visible Buy me a coffee button */}
+        <div className="absolute top-4 right-4 z-10">
+          <BuyMeCoffeeButton />
+        </div>
+
         <div 
           className={cn(
             "text-center transition-all duration-500 ease-out",
@@ -1010,9 +1015,6 @@ const Index = () => {
               : "mb-0 opacity-0 -translate-y-8 pointer-events-none"
           )}
         >
-          <div className="absolute top-4 right-4">
-            <BuyMeCoffeeButton />
-          </div>
           <h1 className="text-3xl md:text-5xl font-bold mb-4 md:mb-6 bg-gradient-primary bg-clip-text text-transparent">
             Neovim Config Generator
           </h1>
