@@ -427,18 +427,22 @@ export const GenerateActions: React.FC<GenerateActionsProps> = ({
       {/* Mobile/Tablet Layout (tabs) */}
       <div className="lg:hidden">
         <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-          <TabsList className="grid w-full grid-cols-5">
-            {ACTION_CATEGORIES.map((category) => (
-              <TabsTrigger 
-                key={category.id} 
-                value={category.id}
-                className="flex flex-col gap-1 h-16 text-xs"
-              >
-                {category.icon}
-                <span className="hidden sm:inline">{category.title.split(' ')[0]}</span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          <div className="w-full overflow-x-auto">
+            <TabsList className="inline-flex w-max min-w-full h-auto p-1">
+              {ACTION_CATEGORIES.map((category) => (
+                <TabsTrigger 
+                  key={category.id} 
+                  value={category.id}
+                  className="flex flex-col gap-1 h-16 px-2 sm:px-3 text-xs min-w-0 flex-shrink-0"
+                >
+                  {category.icon}
+                  <span className="truncate max-w-[60px] sm:max-w-none">
+                    {category.title.split(' ')[0]}
+                  </span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
           
           {ACTION_CATEGORIES.map((category) => (
             <TabsContent key={category.id} value={category.id} className="mt-6">
