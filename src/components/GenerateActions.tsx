@@ -14,16 +14,12 @@ import {
   Save, 
   Monitor, 
   Package, 
-  Stethoscope,
   FileText,
   FolderOpen,
-  Settings,
   RefreshCw
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
-import { ConfigImporter } from './ConfigImporter';
-import { HealthCheckAnalyzer } from './HealthCheckAnalyzer';
 import { InstallerScripts } from './InstallerScripts';
 
 interface GenerateActionsProps {
@@ -65,18 +61,6 @@ const ACTION_CATEGORIES: ActionCategory[] = [
     title: 'Installation Scripts',
     description: 'Automated installer scripts for Neovim and configuration',
     icon: <Package className="w-5 h-5" />
-  },
-  {
-    id: 'health-check',
-    title: 'Health Check',
-    description: 'Analyze and troubleshoot your Neovim installation',
-    icon: <Stethoscope className="w-5 h-5" />
-  },
-  {
-    id: 'import-config',
-    title: 'Import Config',
-    description: 'Import existing Neovim configuration',
-    icon: <Settings className="w-5 h-5" />
   }
 ];
 
@@ -93,7 +77,21 @@ export const GenerateActions: React.FC<GenerateActionsProps> = ({
   onImportConfig,
   onTestConnection
 }) => {
-  const [selectedCategory, setSelectedCategory] = useState('save-nvim');
+  // Determine the default category based on setup type
+  const getDefaultCategory = () => {
+    switch (config.setupType) {
+      case 'fresh':
+        return 'install-scripts';
+      case 'existing-no-listener':
+        return 'copy-download';
+      case 'existing-with-listener':
+        return 'save-nvim';
+      default:
+        return 'copy-download';
+    }
+  };
+
+  const [selectedCategory, setSelectedCategory] = useState(getDefaultCategory());
 
   const renderSaveToNvim = () => {
     // Check if user is on mobile
@@ -313,32 +311,6 @@ export const GenerateActions: React.FC<GenerateActionsProps> = ({
     </div>
   );
 
-  const renderHealthCheck = () => (
-    <div className="space-y-6">
-      <div className="text-center space-y-2">
-        <h3 className="text-lg font-semibold">Health Check Analysis</h3>
-        <p className="text-muted-foreground">
-          Paste your Neovim :checkhealth output to analyze potential issues
-        </p>
-      </div>
-      
-      <HealthCheckAnalyzer />
-    </div>
-  );
-
-  const renderImportConfig = () => (
-    <div className="space-y-6">
-      <div className="text-center space-y-2">
-        <h3 className="text-lg font-semibold">Import Existing Configuration</h3>
-        <p className="text-muted-foreground">
-          Upload or paste your existing init.lua to import settings
-        </p>
-      </div>
-      
-      <ConfigImporter onImportConfig={onImportConfig} />
-    </div>
-  );
-
   const renderCurrentCategory = () => {
     switch (selectedCategory) {
       case 'save-nvim':
@@ -347,12 +319,8 @@ export const GenerateActions: React.FC<GenerateActionsProps> = ({
         return renderCopyDownload();
       case 'install-scripts':
         return renderInstallScripts();
-      case 'health-check':
-        return renderHealthCheck();
-      case 'import-config':
-        return renderImportConfig();
       default:
-        return renderSaveToNvim();
+        return renderCopyDownload();
     }
   };
 
@@ -364,7 +332,7 @@ export const GenerateActions: React.FC<GenerateActionsProps> = ({
           Configuration Ready
         </h2>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Your Neovim configuration has been generated. Choose how you'd like to proceed.
+          Your Neovim configuration has been generated. Choose how you'd like to proceed based on your setup.
         </p>
       </div>
 

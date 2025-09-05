@@ -20,6 +20,7 @@ import { ConfigImporter } from '@/components/ConfigImporter';
 import { BuyMeCoffeeButton } from '@/components/BuyMeCoffeeButton';
 import { GenerateActions } from '@/components/GenerateActions';
 import { PluginWizardStep } from '@/components/PluginWizardStep';
+import { SetupQuestions } from '@/components/SetupQuestions';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/ThemeContext';
 import { connectDirectory, writeToConnectedDirectory, hasDirectoryConnection } from '@/utils/dirHandleStore';
@@ -42,9 +43,12 @@ interface NvimConfig {
   nvimListenerEnabled?: boolean;
   nvimListenerPort?: number;
   nvimListenerToken?: string;
+  setupType?: 'fresh' | 'existing-no-listener' | 'existing-with-listener';
+  hasConfigListener?: boolean;
 }
 
 const STEPS = [
+  'Setup',
   'Quick Start',
   'Languages', 
   'Theme',
@@ -158,7 +162,9 @@ const Index = () => {
     downloadDir: '',
     nvimListenerEnabled: false,
     nvimListenerPort: 45831,
-    nvimListenerToken: ''
+    nvimListenerToken: '',
+    setupType: 'fresh',
+    hasConfigListener: false
   });
   const [generatedConfig, setGeneratedConfig] = useState<string>('');
   const [copied, setCopied] = useState(false);
@@ -227,7 +233,9 @@ const Index = () => {
       downloadDir: '',
       nvimListenerEnabled: false,
       nvimListenerPort: 45831,
-      nvimListenerToken: ''
+      nvimListenerToken: '',
+      setupType: 'fresh',
+      hasConfigListener: false
     };
 
     const newConfig: NvimConfig = { 
@@ -568,14 +576,30 @@ const Index = () => {
     }
   };
 
+  const handleSetupChoice = (setupType: 'fresh' | 'existing-no-listener' | 'existing-with-listener', hasConfigListener: boolean) => {
+    const updatedConfig = { 
+      ...config, 
+      setupType, 
+      hasConfigListener,
+      nvimListenerEnabled: hasConfigListener 
+    };
+    setConfig(updatedConfig);
+    setCurrentStep(1);
+    updateURL(1, updatedConfig);
+    toast({
+      title: "Setup Configured!",
+      description: `Selected ${setupType.replace('-', ' ')} setup.`,
+    });
+  };
+
   const handleApplyPreset = (preset: any) => {
     const presetWithDefaults = { 
       ...preset, 
       settingsConfig: preset.settingsConfig || getDefaultSettingsConfig() 
     };
     setConfig(presetWithDefaults);
-    setCurrentStep(1);
-    updateURL(1, presetWithDefaults);
+    setCurrentStep(2);
+    updateURL(2, presetWithDefaults);
     toast({
       title: "Preset Applied!",
       description: "You can now customize this configuration further.",
@@ -588,8 +612,8 @@ const Index = () => {
       settingsConfig: importedConfig.settingsConfig || getDefaultSettingsConfig() 
     };
     setConfig(configWithDefaults);
-    setCurrentStep(1);
-    updateURL(1, configWithDefaults);
+    setCurrentStep(2);
+    updateURL(2, configWithDefaults);
     toast({
       title: "Configuration Imported!",
       description: "Your existing configuration has been loaded. You can now customize it further.",
@@ -598,12 +622,13 @@ const Index = () => {
 
   const canProceed = () => {
     switch (currentStep) {
-      case 0: return true; // Quick start step
-      case 1: return config.languages.length > 0; // Languages step
-      case 2: return true; // Theme is optional (can skip)
-      case 3: return true; // Plugins are optional
-      case 4: return true; // Settings are optional
-      case 5: return true; // Keymaps are optional
+      case 0: return config.setupType !== undefined; // Setup step
+      case 1: return true; // Quick start step
+      case 2: return config.languages.length > 0; // Languages step
+      case 3: return true; // Theme is optional (can skip)
+      case 4: return true; // Plugins are optional
+      case 5: return true; // Settings are optional
+      case 6: return true; // Keymaps are optional
       default: return true;
     }
   };
@@ -612,9 +637,16 @@ const Index = () => {
     switch (currentStep) {
       case 0:
         return (
-          <PresetStacks onApplyPreset={handleApplyPreset} onImportConfig={handleImportConfig} />
+          <SetupQuestions 
+            onSetupChoice={handleSetupChoice} 
+            onImportConfig={handleImportConfig} 
+          />
         );
       case 1:
+        return (
+          <PresetStacks onApplyPreset={handleApplyPreset} />
+        );
+      case 2:
         return (
           <WizardStep
             title="Select Programming Languages"
@@ -625,7 +657,7 @@ const Index = () => {
             multiSelect={true}
           />
         );
-      case 2:
+      case 3:
         return (
           <WizardStep
             title="Choose Your Theme"
@@ -637,7 +669,7 @@ const Index = () => {
             showThemePreviews={true}
           />
         );
-      case 3:
+      case 4:
         return (
           <PluginWizardStep
             title="Essential Plugins"
@@ -649,7 +681,7 @@ const Index = () => {
             onCustomPluginAdd={handleCustomPluginAdd}
           />
         );
-      case 4:
+      case 5:
         return (
           <ModernSettings
             settings={config.settingsConfig || getDefaultSettingsConfig()}
@@ -662,7 +694,7 @@ const Index = () => {
             } : undefined}
           />
         );
-      case 5:
+      case 6:
         return (
           <ModernKeymaps
             leaderKey={config.leaderKey}
@@ -673,7 +705,7 @@ const Index = () => {
             onBatchKeymapChange={handleBatchKeymapChange}
           />
         );
-      case 6:
+      case 7:
         return (
           <GenerateActions
             config={config}
