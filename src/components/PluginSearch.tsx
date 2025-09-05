@@ -207,69 +207,72 @@ export const PluginSearch: React.FC<PluginSearchProps> = ({
             <h3 className="font-semibold text-lg">Search Results</h3>
             <div className="grid gap-4">
               {searchResults.map((result, index) => (
-                <Card key={index} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-medium text-base line-clamp-1">
-                            {result.title}
-                          </h4>
-                          {result.stars !== undefined && (
-                            <Badge variant="secondary" className="text-xs">
-                              <Star className="w-3 h-3 mr-1" />
-                              {result.stars}
-                            </Badge>
-                          )}
-                          {result.forks !== undefined && (
-                            <Badge variant="outline" className="text-xs">
-                              <GitFork className="w-3 h-3 mr-1" />
-                              {result.forks}
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {result.description}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            asChild
-                          >
-                            <a
-                              href={result.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-1"
-                            >
-                              <ExternalLink className="w-3 h-3" />
-                              View on GitHub
-                            </a>
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="flex-shrink-0">
-                        <Button
-                          onClick={() => handleAddPlugin(result)}
-                          disabled={isPluginAdded(result)}
-                          size="sm"
-                          variant={isPluginAdded(result) ? "secondary" : "default"}
-                        >
-                          {isPluginAdded(result) ? (
-                            <>
-                              <Check className="w-4 h-4 mr-1" />
-                              Added
-                            </>
-                          ) : (
-                            <>
-                              <Plus className="w-4 h-4 mr-1" />
-                              Add Plugin
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </div>
+                  <Card key={index} className="hover:shadow-md transition-shadow">
+                   <CardContent className="p-4">
+                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                       <div className="flex-1 space-y-3">
+                         <div className="space-y-2">
+                           <h4 className="font-medium text-base line-clamp-2">
+                             {result.title}
+                           </h4>
+                           <div className="flex items-center gap-2 flex-wrap">
+                             {result.stars !== undefined && (
+                               <Badge variant="secondary" className="text-xs">
+                                 <Star className="w-3 h-3 mr-1" />
+                                 {result.stars}
+                               </Badge>
+                             )}
+                             {result.forks !== undefined && (
+                               <Badge variant="outline" className="text-xs">
+                                 <GitFork className="w-3 h-3 mr-1" />
+                                 {result.forks}
+                               </Badge>
+                             )}
+                           </div>
+                         </div>
+                         <p className="text-sm text-muted-foreground line-clamp-3">
+                           {result.description}
+                         </p>
+                         <div className="flex items-center gap-2">
+                           <Button
+                             variant="outline"
+                             size="sm"
+                             asChild
+                           >
+                             <a
+                               href={result.url}
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               className="flex items-center gap-1"
+                             >
+                               <ExternalLink className="w-3 h-3" />
+                               View on GitHub
+                             </a>
+                           </Button>
+                         </div>
+                       </div>
+                       <div className="flex-shrink-0 w-full sm:w-auto">
+                         <Button
+                           onClick={() => handleAddPlugin(result)}
+                           disabled={isPluginAdded(result)}
+                           size="sm"
+                           variant={isPluginAdded(result) ? "secondary" : "default"}
+                           className="w-full sm:w-auto"
+                         >
+                           {isPluginAdded(result) ? (
+                             <>
+                               <Check className="w-4 h-4 mr-1" />
+                               Added
+                             </>
+                           ) : (
+                             <>
+                               <Plus className="w-4 h-4 mr-1" />
+                               Add Plugin
+                             </>
+                           )}
+                         </Button>
+                       </div>
+                     </div>
                   </CardContent>
                 </Card>
               ))}
