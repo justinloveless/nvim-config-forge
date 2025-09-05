@@ -17,6 +17,7 @@ interface WizardStepProps {
   onSelectionChange: (selectedIds: string[]) => void;
   multiSelect?: boolean;
   showThemePreviews?: boolean;
+  hideHeader?: boolean;
 }
 
 export const WizardStep: React.FC<WizardStepProps> = ({
@@ -26,7 +27,8 @@ export const WizardStep: React.FC<WizardStepProps> = ({
   selectedOptions,
   onSelectionChange,
   multiSelect = true,
-  showThemePreviews = false
+  showThemePreviews = false,
+  hideHeader = false
 }) => {
   const handleSelect = (id: string) => {
     if (multiSelect) {
@@ -41,16 +43,18 @@ export const WizardStep: React.FC<WizardStepProps> = ({
 
   return (
     <div className="space-y-8">
-      <div className="text-center space-y-4">
-        <h2 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-          {title}
-        </h2>
-        {subtitle && (
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            {subtitle}
-          </p>
-        )}
-      </div>
+      {!hideHeader && (
+        <div className="text-center space-y-4">
+          <h2 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            {title}
+          </h2>
+          {subtitle && (
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              {subtitle}
+            </p>
+          )}
+        </div>
+      )}
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {options.map((option) => (

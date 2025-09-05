@@ -19,6 +19,7 @@ import { HealthCheckAnalyzer } from '@/components/HealthCheckAnalyzer';
 import { ConfigImporter } from '@/components/ConfigImporter';
 import { BuyMeCoffeeButton } from '@/components/BuyMeCoffeeButton';
 import { GenerateActions } from '@/components/GenerateActions';
+import { PluginWizardStep } from '@/components/PluginWizardStep';
 import { connectDirectory, writeToConnectedDirectory, hasDirectoryConnection } from '@/utils/dirHandleStore';
 import { detectNvimListener, saveToNvim } from '@/utils/nvimListener';
 import { Code, Palette, Plug, Settings, Download, FileText, Copy, Check, Zap, Wrench, FileUp, Folder, RefreshCw, Wifi, WifiOff } from 'lucide-react';
@@ -113,6 +114,7 @@ const Index = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [hasDirectoryHandle, setHasDirectoryHandle] = useState(false);
   const [nvimListenerConnected, setNvimListenerConnected] = useState(false);
+  const [customPlugins, setCustomPlugins] = useState<Array<{id: string; title: string; description: string; icon?: React.ReactNode}>>([]);
   const { toast } = useToast();
 
   // URL state management
@@ -295,6 +297,10 @@ const Index = () => {
     const newConfig = { ...config, plugins: selectedIds };
     setConfig(newConfig);
     updateURL(currentStep, newConfig);
+  };
+
+  const handleCustomPluginAdd = (plugin: {id: string; title: string; description: string; icon?: React.ReactNode}) => {
+    setCustomPlugins(prev => [...prev, plugin]);
   };
 
   const handleSettingsConfigChange = (newSettingsConfig: SettingsConfig) => {
@@ -569,13 +575,14 @@ const Index = () => {
         );
       case 3:
         return (
-          <WizardStep
+          <PluginWizardStep
             title="Essential Plugins"
             subtitle="Select plugins to enhance your Neovim experience. LSP servers and completion are automatically included for your selected languages. All selections here are optional."
             options={PLUGIN_OPTIONS}
             selectedOptions={config.plugins}
             onSelectionChange={handlePluginChange}
-            multiSelect={true}
+            customPlugins={customPlugins}
+            onCustomPluginAdd={handleCustomPluginAdd}
           />
         );
       case 4:
