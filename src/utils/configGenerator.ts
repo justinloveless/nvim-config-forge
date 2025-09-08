@@ -138,61 +138,64 @@ require("lazy").setup({
           'javascript': 'ts_ls',
           'html': 'html',
           'css': 'cssls',
+          'scss': 'cssls',
+          'sass': 'cssls',
           'vue': 'volar',
           'svelte': 'svelte',
+          'angular': 'angularls',
+          'react': 'ts_ls',
           
           // Backend & Systems
           'python': 'pyright',
-          'rust': 'rust_analyzer',
-          'go': 'gopls',
-          'c': 'clangd',
-          'cpp': 'clangd',
-          'csharp': 'omnisharp',
+          'nodejs': 'ts_ls',
           'java': 'jdtls',
+          'csharp': 'omnisharp',
+          'php': 'phpactor',
+          'ruby': 'ruby_lsp',
+          'go': 'gopls',
+          'rust': 'rust_analyzer',
+          'cpp': 'clangd',
+          'c': 'clangd',
+          'zig': 'zls',
           'kotlin': 'kotlin_language_server',
           'scala': 'metals',
-          'php': 'phpactor',
-          'ruby': 'solargraph',
-          'dart': 'dartls',
           'swift': 'sourcekit',
-          'zig': 'zls',
-          
-          // Functional
-          'haskell': 'hls',
-          'ocaml': 'ocamllsp',
+          'dart': 'dartls',
           'elixir': 'elixirls',
           'erlang': 'erlangls',
-          'clojure': 'clojure_lsp',
+          'haskell': 'hls',
+          'ocaml': 'ocamllsp',
           'fsharp': 'fsautocomplete',
+          'clojure': 'clojure_lsp',
           
-          // Data & ML
-          'r': 'r_language_server',
-          'julia': 'julials',
-          'matlab': 'matlab_ls',
-          
-          // Shell & Config
+          // Scripting & Shell
           'bash': 'bashls',
-          'fish': 'fish_lsp',
+          'zsh': 'bashls',
+          'fish': 'bashls',
           'powershell': 'powershell_es',
           'lua': 'lua_ls',
+          'perl': 'perlnavigator',
+          'r': 'r_language_server',
           
-          // Config & Markup
-          'yaml': 'yamlls',
+          // Data & Config
           'json': 'jsonls',
+          'yaml': 'yamlls',
           'toml': 'taplo',
           'xml': 'lemminx',
-          'markdown': 'marksman',
-          
-          // Database
           'sql': 'sqlls',
           
+          // Documentation & Markup
+          'markdown': 'marksman',
+          'latex': 'texlab',
+          'restructuredtext': 'esbonio',
+          
           // Other
-          'nix': 'nil_ls',
           'dockerfile': 'dockerls',
           'terraform': 'terraformls',
-          'vim': 'vimls'
+          'nix': 'nixd',
+          'solidity': 'solidity',
         };
-        return serverMap[lang];
+        return serverMap[lang] || null;
       }).filter(Boolean);
 
       initContent += `
@@ -200,23 +203,23 @@ require("lazy").setup({
         },
         automatic_installation = false,
       })
+      
+      -- Setup handlers for automatic LSP server setup
+      require("mason-lspconfig").setup_handlers({
+        function(server_name)
+          local capabilities = require('cmp_nvim_lsp').default_capabilities()
+          require("lspconfig")[server_name].setup({
+            capabilities = capabilities
+          })
+        end,
+      })
     end,
   },
   {
     "neovim/nvim-lspconfig",
     dependencies = { "mason.nvim", "mason-lspconfig.nvim" },
     config = function()
-      local capabilities = require('cmp_nvim_lsp').default_capabilities()
-      local lspconfig = require('lspconfig')
-      
-      -- Setup handlers for automatic LSP server setup
-      require("mason-lspconfig").setup_handlers({
-        function(server_name)
-          require("lspconfig")[server_name].setup({
-            capabilities = capabilities
-          })
-        end,
-      })
+      -- LSP setup is handled by mason-lspconfig setup_handlers above
       
 `;
 
